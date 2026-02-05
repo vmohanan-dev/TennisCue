@@ -24,6 +24,10 @@ const strokeIcons: Record<StrokeType, string> = {
   volley: 'bolt',
   overhead: 'cloud-upload',
   general: 'th-large',
+  approach: 'arrow-right',
+  'drop-shot': 'hand-stop-o',
+  lob: 'level-up',
+  slice: 'minus',
 };
 
 const skillIcons: Record<SkillArea, string> = {
@@ -33,6 +37,8 @@ const skillIcons: Record<SkillArea, string> = {
   'follow-through': 'long-arrow-right',
   timing: 'hourglass-half',
   mental: 'lightbulb-o',
+  recovery: 'refresh',
+  tactics: 'sitemap',
 };
 
 const levelIcons: Record<SkillLevel, string> = {

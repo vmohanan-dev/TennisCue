@@ -7,7 +7,11 @@ export type StrokeType =
   | 'return'
   | 'volley'
   | 'overhead'
-  | 'general';
+  | 'general'
+  | 'approach'
+  | 'drop-shot'
+  | 'lob'
+  | 'slice';
 
 export type SkillArea =
   | 'footwork'
@@ -15,7 +19,9 @@ export type SkillArea =
   | 'contact'
   | 'follow-through'
   | 'timing'
-  | 'mental';
+  | 'mental'
+  | 'recovery'
+  | 'tactics';
 
 export interface Cue {
   id: string;
