@@ -54,7 +54,7 @@ interface FilterOption {
 }
 
 export default function LibraryScreen() {
-  const { level: userLevel } = useUserStore();
+  useUserStore();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [selectedStroke, setSelectedStroke] = useState<StrokeType | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<SkillArea | null>(null);
@@ -62,9 +62,9 @@ export default function LibraryScreen() {
 
   const filterOptions: FilterOption[] = [
     { id: 'all', label: 'All', type: 'all' },
+    { id: 'level', label: 'By Level', type: 'level' },
     { id: 'stroke', label: 'By Stroke', type: 'stroke' },
     { id: 'skill', label: 'By Skill', type: 'skill' },
-    { id: 'level', label: 'By Level', type: 'level' },
   ];
 
   const strokeOptions = Object.entries(strokeLabels).map(([id, label]) => ({

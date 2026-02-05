@@ -67,3 +67,12 @@ export interface QuizQuestion {
     points: number; // Points toward higher skill level
   }[];
 }
+
+export interface VideoResource {
+  id: string;
+  url: string;
+  title: string;
+  channel: string;
+  relatedCueIds: string[];
+  primaryCueId?: string;
+}

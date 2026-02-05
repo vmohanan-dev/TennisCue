@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/Colors';
 import { Card } from './Card';
 import { LevelBadge } from './LevelBadge';
 import { Cue } from '@/types';
 import { strokeLabels, skillAreaLabels } from '@/data/cues';
+import { getVideosForCue } from '@/data/videos';
 import { useUserStore } from '@/store';
 
 interface CueCardProps {
@@ -18,6 +20,8 @@ interface CueCardProps {
 export function CueCard({ cue, showToggle = false, compact = false }: CueCardProps) {
   const { activeCueIds, toggleActiveCue } = useUserStore();
   const isActive = activeCueIds.includes(cue.id);
+  const videos = getVideosForCue(cue.id);
+  const hasVideos = videos.length > 0;
 
   const handlePress = () => {
     router.push(`/cue/${cue.id}`);
@@ -25,6 +29,19 @@ export function CueCard({ cue, showToggle = false, compact = false }: CueCardPro
 
   const handleToggle = () => {
     toggleActiveCue(cue.id);
+  };
+
+  const handleOpenVideo = async () => {
+    if (hasVideos) {
+      try {
+        await WebBrowser.openBrowserAsync(videos[0].url, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+          controlsColor: Colors.primary,
+        });
+      } catch (error) {
+        console.error('Error opening video:', error);
+      }
+    }
   };
 
   if (compact) {
@@ -77,7 +94,14 @@ export function CueCard({ cue, showToggle = false, compact = false }: CueCardPro
           <FontAwesome name="tag" size={12} color={Colors.textSecondary} />
           <Text style={styles.skillAreaText}>{skillAreaLabels[cue.skillArea]}</Text>
         </View>
-        <FontAwesome name="chevron-right" size={14} color={Colors.textSecondary} />
+        <View style={styles.footerRight}>
+          {hasVideos && (
+            <TouchableOpacity onPress={handleOpenVideo} style={styles.videoButton}>
+              <FontAwesome name="youtube-play" size={20} color="#FF0000" />
+            </TouchableOpacity>
+          )}
+          <FontAwesome name="chevron-right" size={14} color={Colors.textSecondary} />
+        </View>
       </View>
     </Card>
   );
@@ -137,6 +161,14 @@ const styles = StyleSheet.create({
   skillAreaText: {
     fontSize: 13,
     color: Colors.textSecondary,
+  },
+  footerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  videoButton: {
+    padding: 4,
   },
   // Compact styles
   compactCard: {
