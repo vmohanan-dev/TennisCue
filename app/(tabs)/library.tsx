@@ -111,11 +111,15 @@ export default function LibraryScreen() {
       result = result.filter((cue) => cue.level === selectedLevel);
     }
 
-    // Sort by level (beginner first), then alphabetically
+    // Sort by level (beginner first), then by sortOrder for beginners, alphabetically for others
     const levelOrder = { beginner: 0, intermediate: 1, advanced: 2 };
     result.sort((a, b) => {
       const levelDiff = levelOrder[a.level] - levelOrder[b.level];
       if (levelDiff !== 0) return levelDiff;
+      // For beginners, use pedagogical sortOrder; otherwise alphabetical
+      if (a.level === 'beginner' && b.level === 'beginner') {
+        return (a.sortOrder || 999) - (b.sortOrder || 999);
+      }
       return a.title.localeCompare(b.title);
     });
 

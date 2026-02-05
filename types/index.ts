@@ -31,6 +31,7 @@ export interface Cue {
   strokeType: StrokeType;
   skillArea: SkillArea;
   level: SkillLevel;
+  sortOrder?: number; // Pedagogical ordering for beginner cues (1-38)
 }
 
 export interface CueRating {

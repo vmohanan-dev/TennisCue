@@ -13,6 +13,7 @@ export const cues: Cue[] = [
     strokeType: 'general',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 3,
   },
   {
     id: 'gen-2',
@@ -23,6 +24,7 @@ export const cues: Cue[] = [
     strokeType: 'general',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 2,
   },
   {
     id: 'gen-3',
@@ -33,6 +35,7 @@ export const cues: Cue[] = [
     strokeType: 'general',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 1,
   },
   {
     id: 'gen-4',
@@ -43,6 +46,7 @@ export const cues: Cue[] = [
     strokeType: 'general',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 4,
   },
 
   // Forehand - Beginner
@@ -55,6 +59,7 @@ export const cues: Cue[] = [
     strokeType: 'forehand',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 8,
   },
   {
     id: 'fh-2',
@@ -65,6 +70,7 @@ export const cues: Cue[] = [
     strokeType: 'forehand',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 10,
   },
   {
     id: 'fh-3',
@@ -75,6 +81,7 @@ export const cues: Cue[] = [
     strokeType: 'forehand',
     skillArea: 'follow-through',
     level: 'beginner',
+    sortOrder: 11,
   },
 
   // Backhand - Beginner
@@ -87,6 +94,7 @@ export const cues: Cue[] = [
     strokeType: 'backhand',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 12,
   },
   {
     id: 'bh-2',
@@ -97,6 +105,7 @@ export const cues: Cue[] = [
     strokeType: 'backhand',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 14,
   },
 
   // Serve - Beginner
@@ -109,6 +118,7 @@ export const cues: Cue[] = [
     strokeType: 'serve',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 20,
   },
   {
     id: 'sv-2',
@@ -119,6 +129,7 @@ export const cues: Cue[] = [
     strokeType: 'serve',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 17,
   },
 
   // === INTERMEDIATE CUES ===
@@ -314,6 +325,7 @@ export const cues: Cue[] = [
     strokeType: 'general',
     skillArea: 'recovery',
     level: 'beginner',
+    sortOrder: 5,
   },
   {
     id: 'gen-8',
@@ -324,6 +336,7 @@ export const cues: Cue[] = [
     strokeType: 'general',
     skillArea: 'timing',
     level: 'beginner',
+    sortOrder: 6,
   },
   {
     id: 'gen-9',
@@ -377,6 +390,7 @@ export const cues: Cue[] = [
     strokeType: 'forehand',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 7,
   },
   {
     id: 'fh-9',
@@ -387,6 +401,7 @@ export const cues: Cue[] = [
     strokeType: 'forehand',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 9,
   },
   {
     id: 'fh-10',
@@ -450,6 +465,7 @@ export const cues: Cue[] = [
     strokeType: 'backhand',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 13,
   },
   {
     id: 'bh-6',
@@ -460,6 +476,7 @@ export const cues: Cue[] = [
     strokeType: 'backhand',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 16,
   },
   {
     id: 'bh-7',
@@ -470,6 +487,7 @@ export const cues: Cue[] = [
     strokeType: 'backhand',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 15,
   },
   {
     id: 'bh-8',
@@ -553,6 +571,7 @@ export const cues: Cue[] = [
     strokeType: 'serve',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 19,
   },
   {
     id: 'sv-8',
@@ -563,6 +582,7 @@ export const cues: Cue[] = [
     strokeType: 'serve',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 18,
   },
   {
     id: 'sv-9',
@@ -573,6 +593,7 @@ export const cues: Cue[] = [
     strokeType: 'serve',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 21,
   },
   {
     id: 'sv-10',
@@ -656,6 +677,7 @@ export const cues: Cue[] = [
     strokeType: 'return',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 23,
   },
   {
     id: 'rt-3',
@@ -666,6 +688,7 @@ export const cues: Cue[] = [
     strokeType: 'return',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 22,
   },
   {
     id: 'rt-4',
@@ -676,6 +699,7 @@ export const cues: Cue[] = [
     strokeType: 'return',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 24,
   },
   {
     id: 'rt-5',
@@ -749,6 +773,7 @@ export const cues: Cue[] = [
     strokeType: 'volley',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 25,
   },
   {
     id: 'vl-4',
@@ -759,6 +784,7 @@ export const cues: Cue[] = [
     strokeType: 'volley',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 27,
   },
   {
     id: 'vl-5',
@@ -769,6 +795,7 @@ export const cues: Cue[] = [
     strokeType: 'volley',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 26,
   },
   {
     id: 'vl-6',
@@ -832,6 +859,7 @@ export const cues: Cue[] = [
     strokeType: 'overhead',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 28,
   },
   {
     id: 'oh-3',
@@ -842,6 +870,7 @@ export const cues: Cue[] = [
     strokeType: 'overhead',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 29,
   },
   {
     id: 'oh-4',
@@ -895,6 +924,7 @@ export const cues: Cue[] = [
     strokeType: 'approach',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 30,
   },
   {
     id: 'ap-2',
@@ -905,6 +935,7 @@ export const cues: Cue[] = [
     strokeType: 'approach',
     skillArea: 'footwork',
     level: 'beginner',
+    sortOrder: 31,
   },
   {
     id: 'ap-3',
@@ -978,6 +1009,7 @@ export const cues: Cue[] = [
     strokeType: 'drop-shot',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 33,
   },
   {
     id: 'ds-2',
@@ -988,6 +1020,7 @@ export const cues: Cue[] = [
     strokeType: 'drop-shot',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 32,
   },
   {
     id: 'ds-3',
@@ -1061,6 +1094,7 @@ export const cues: Cue[] = [
     strokeType: 'lob',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 35,
   },
   {
     id: 'lb-2',
@@ -1071,6 +1105,7 @@ export const cues: Cue[] = [
     strokeType: 'lob',
     skillArea: 'tactics',
     level: 'beginner',
+    sortOrder: 34,
   },
   {
     id: 'lb-3',
@@ -1134,6 +1169,7 @@ export const cues: Cue[] = [
     strokeType: 'slice',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 36,
   },
   {
     id: 'sl-2',
@@ -1144,6 +1180,7 @@ export const cues: Cue[] = [
     strokeType: 'slice',
     skillArea: 'contact',
     level: 'beginner',
+    sortOrder: 38,
   },
   {
     id: 'sl-3',
@@ -1154,6 +1191,7 @@ export const cues: Cue[] = [
     strokeType: 'slice',
     skillArea: 'preparation',
     level: 'beginner',
+    sortOrder: 37,
   },
   {
     id: 'sl-4',
