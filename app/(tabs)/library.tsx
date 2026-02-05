@@ -15,6 +15,32 @@ import { StrokeType, SkillArea, SkillLevel } from '@/types';
 
 type FilterType = 'all' | 'stroke' | 'skill' | 'level';
 
+// Icon mappings for category cards
+const strokeIcons: Record<StrokeType, string> = {
+  forehand: 'hand-paper-o',
+  backhand: 'reply',
+  serve: 'arrow-up',
+  return: 'mail-reply',
+  volley: 'bolt',
+  overhead: 'cloud-upload',
+  general: 'th-large',
+};
+
+const skillIcons: Record<SkillArea, string> = {
+  footwork: 'road',
+  preparation: 'clock-o',
+  contact: 'bullseye',
+  'follow-through': 'long-arrow-right',
+  timing: 'hourglass-half',
+  mental: 'lightbulb-o',
+};
+
+const levelIcons: Record<SkillLevel, string> = {
+  beginner: 'star-o',
+  intermediate: 'star-half-o',
+  advanced: 'star',
+};
+
 interface FilterOption {
   id: string;
   label: string;
@@ -50,6 +76,24 @@ export default function LibraryScreen() {
     label,
   }));
 
+  // Calculate cue counts per category
+  const cueCounts = useMemo(() => {
+    return {
+      stroke: strokeOptions.reduce((acc, opt) => {
+        acc[opt.id] = cues.filter((c) => c.strokeType === opt.id).length;
+        return acc;
+      }, {} as Record<StrokeType, number>),
+      skill: skillOptions.reduce((acc, opt) => {
+        acc[opt.id] = cues.filter((c) => c.skillArea === opt.id).length;
+        return acc;
+      }, {} as Record<SkillArea, number>),
+      level: levelOptions.reduce((acc, opt) => {
+        acc[opt.id] = cues.filter((c) => c.level === opt.id).length;
+        return acc;
+      }, {} as Record<SkillLevel, number>),
+    };
+  }, []);
+
   const filteredCues = useMemo(() => {
     let result = [...cues];
 
@@ -81,6 +125,47 @@ export default function LibraryScreen() {
     }
   };
 
+  const renderCategoryCard = (
+    option: { id: string; label: string },
+    isSelected: boolean,
+    count: number,
+    icon: string,
+    onPress: () => void,
+    colorOverride?: string
+  ) => (
+    <TouchableOpacity
+      key={option.id}
+      style={[
+        styles.categoryCard,
+        isSelected && styles.categoryCardActive,
+        colorOverride && { borderColor: colorOverride },
+        isSelected && colorOverride && { backgroundColor: colorOverride + '15' },
+      ]}
+      onPress={onPress}
+    >
+      <FontAwesome
+        name={icon as any}
+        size={24}
+        color={
+          isSelected
+            ? colorOverride || Colors.primary
+            : Colors.textSecondary
+        }
+      />
+      <Text
+        style={[
+          styles.categoryLabel,
+          isSelected && styles.categoryLabelActive,
+          isSelected && colorOverride && { color: colorOverride },
+        ]}
+        numberOfLines={2}
+      >
+        {option.label}
+      </Text>
+      <Text style={styles.categoryCount}>{count}</Text>
+    </TouchableOpacity>
+  );
+
   const renderSubFilters = () => {
     if (activeFilter === 'stroke') {
       return (
@@ -88,29 +173,17 @@ export default function LibraryScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.subFilterScroll}
-          contentContainerStyle={styles.subFilterContent}
+          contentContainerStyle={styles.categoryContent}
         >
-          {strokeOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.subFilterChip,
-                selectedStroke === option.id && styles.subFilterChipActive,
-              ]}
-              onPress={() =>
-                setSelectedStroke(selectedStroke === option.id ? null : option.id)
-              }
-            >
-              <Text
-                style={[
-                  styles.subFilterText,
-                  selectedStroke === option.id && styles.subFilterTextActive,
-                ]}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {strokeOptions.map((option) =>
+            renderCategoryCard(
+              option,
+              selectedStroke === option.id,
+              cueCounts.stroke[option.id],
+              strokeIcons[option.id],
+              () => setSelectedStroke(selectedStroke === option.id ? null : option.id)
+            )
+          )}
         </ScrollView>
       );
     }
@@ -121,29 +194,17 @@ export default function LibraryScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.subFilterScroll}
-          contentContainerStyle={styles.subFilterContent}
+          contentContainerStyle={styles.categoryContent}
         >
-          {skillOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.subFilterChip,
-                selectedSkill === option.id && styles.subFilterChipActive,
-              ]}
-              onPress={() =>
-                setSelectedSkill(selectedSkill === option.id ? null : option.id)
-              }
-            >
-              <Text
-                style={[
-                  styles.subFilterText,
-                  selectedSkill === option.id && styles.subFilterTextActive,
-                ]}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {skillOptions.map((option) =>
+            renderCategoryCard(
+              option,
+              selectedSkill === option.id,
+              cueCounts.skill[option.id],
+              skillIcons[option.id],
+              () => setSelectedSkill(selectedSkill === option.id ? null : option.id)
+            )
+          )}
         </ScrollView>
       );
     }
@@ -154,31 +215,18 @@ export default function LibraryScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.subFilterScroll}
-          contentContainerStyle={styles.subFilterContent}
+          contentContainerStyle={styles.categoryContent}
         >
-          {levelOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.subFilterChip,
-                selectedLevel === option.id && styles.subFilterChipActive,
-                { borderColor: Colors[option.id] },
-                selectedLevel === option.id && { backgroundColor: Colors[option.id] },
-              ]}
-              onPress={() =>
-                setSelectedLevel(selectedLevel === option.id ? null : option.id)
-              }
-            >
-              <Text
-                style={[
-                  styles.subFilterText,
-                  selectedLevel === option.id && styles.subFilterTextActive,
-                ]}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {levelOptions.map((option) =>
+            renderCategoryCard(
+              option,
+              selectedLevel === option.id,
+              cueCounts.level[option.id],
+              levelIcons[option.id],
+              () => setSelectedLevel(selectedLevel === option.id ? null : option.id),
+              Colors[option.id as keyof typeof Colors] as string
+            )
+          )}
         </ScrollView>
       );
     }
@@ -275,35 +323,50 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
   },
   subFilterScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.surface,
   },
-  subFilterContent: {
+  categoryContent: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
+    paddingVertical: 12,
   },
-  subFilterChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
+  categoryCard: {
+    width: 85,
+    height: 95,
+    borderRadius: 12,
+    borderWidth: 1.5,
     borderColor: Colors.border,
-    marginRight: 8,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
-  subFilterChipActive: {
-    backgroundColor: Colors.primary,
+  categoryCardActive: {
     borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '10',
   },
-  subFilterText: {
-    fontSize: 13,
+  categoryLabel: {
+    fontSize: 11,
     fontWeight: '500',
     color: Colors.textSecondary,
+    marginTop: 4,
+    textAlign: 'center',
+    lineHeight: 14,
   },
-  subFilterTextActive: {
-    color: Colors.textLight,
+  categoryLabelActive: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  categoryCount: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    marginTop: 4,
   },
   resultsHeader: {
     paddingHorizontal: 20,
