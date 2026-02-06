@@ -1,5 +1,4 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,9 +7,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
-import { useUserStore } from '@/store';
-import { Colors } from '@/constants/Colors';
+import { useUserStore, useAuthStore } from '@/store';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -45,46 +43,42 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
   const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
+  const { user, isInitialized, initialize } = useAuthStore();
 
+  // Initialize auth on mount
   useEffect(() => {
-    if (!hasCompletedOnboarding) {
+    initialize();
+  }, []);
+
+  // Handle navigation based on auth and onboarding state
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    console.log('Auth state changed:', { user: !!user, hasCompletedOnboarding });
+
+    if (!user) {
+      // Not authenticated - go to login
+      router.replace('/(auth)/login');
+    } else if (!hasCompletedOnboarding) {
+      // Authenticated but needs onboarding
       router.replace('/onboarding/welcome');
+    } else {
+      // Authenticated and onboarded - go to main app
+      router.replace('/(tabs)');
     }
-  }, [hasCompletedOnboarding]);
-
-  // Custom theme with our colors
-  const customLightTheme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      primary: Colors.primary,
-      background: Colors.background,
-      card: Colors.surface,
-      text: Colors.text,
-      border: Colors.border,
-    },
-  };
-
-  const customDarkTheme = {
-    ...DarkTheme,
-    colors: {
-      ...DarkTheme.colors,
-      primary: Colors.primaryLight,
-      background: Colors.backgroundDark,
-      card: Colors.surfaceDark,
-      text: Colors.textLight,
-      border: Colors.borderDark,
-    },
-  };
+  }, [user, isInitialized, hasCompletedOnboarding]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? customDarkTheme : customLightTheme}>
+        <ThemeProvider>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="(auth)"
+              options={{ headerShown: false, gestureEnabled: false }}
+            />
             <Stack.Screen
               name="onboarding/welcome"
               options={{ headerShown: false, gestureEnabled: false }}

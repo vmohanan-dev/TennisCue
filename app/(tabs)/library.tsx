@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 import { CueCard } from '@/components/CueCard';
 import { useUserStore } from '@/store';
 import { cues, strokeLabels, skillAreaLabels, levelLabels } from '@/data/cues';
@@ -54,6 +54,7 @@ interface FilterOption {
 }
 
 export default function LibraryScreen() {
+  const { colors } = useTheme();
   useUserStore();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [selectedStroke, setSelectedStroke] = useState<StrokeType | null>(null);
@@ -147,9 +148,9 @@ export default function LibraryScreen() {
       key={option.id}
       style={[
         styles.categoryCard,
-        isSelected && styles.categoryCardActive,
-        colorOverride && { borderColor: colorOverride },
-        isSelected && colorOverride && { backgroundColor: colorOverride + '15' },
+        { borderColor: colors.border, backgroundColor: colors.surface },
+        isSelected && { borderColor: colorOverride || colors.primary },
+        isSelected && { backgroundColor: (colorOverride || colors.primary) + '15' },
       ]}
       onPress={onPress}
     >
@@ -158,21 +159,21 @@ export default function LibraryScreen() {
         size={24}
         color={
           isSelected
-            ? colorOverride || Colors.primary
-            : Colors.textSecondary
+            ? colorOverride || colors.primary
+            : colors.textSecondary
         }
       />
       <Text
         style={[
           styles.categoryLabel,
-          isSelected && styles.categoryLabelActive,
-          isSelected && colorOverride && { color: colorOverride },
+          { color: colors.textSecondary },
+          isSelected && { color: colorOverride || colors.primary, fontWeight: '600' },
         ]}
         numberOfLines={2}
       >
         {option.label}
       </Text>
-      <Text style={styles.categoryCount}>{count}</Text>
+      <Text style={[styles.categoryCount, { color: colors.text }]}>{count}</Text>
     </TouchableOpacity>
   );
 
@@ -182,7 +183,7 @@ export default function LibraryScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.subFilterScroll}
+          style={[styles.subFilterScroll, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}
           contentContainerStyle={styles.categoryContent}
         >
           {strokeOptions.map((option) =>
@@ -203,7 +204,7 @@ export default function LibraryScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.subFilterScroll}
+          style={[styles.subFilterScroll, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}
           contentContainerStyle={styles.categoryContent}
         >
           {skillOptions.map((option) =>
@@ -224,7 +225,7 @@ export default function LibraryScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.subFilterScroll}
+          style={[styles.subFilterScroll, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}
           contentContainerStyle={styles.categoryContent}
         >
           {levelOptions.map((option) =>
@@ -234,7 +235,7 @@ export default function LibraryScreen() {
               cueCounts.level[option.id],
               levelIcons[option.id],
               () => setSelectedLevel(selectedLevel === option.id ? null : option.id),
-              Colors[option.id as keyof typeof Colors] as string
+              colors[option.id as keyof typeof colors] as string
             )
           )}
         </ScrollView>
@@ -245,9 +246,9 @@ export default function LibraryScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Main Filters */}
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -258,14 +259,16 @@ export default function LibraryScreen() {
               key={option.id}
               style={[
                 styles.filterChip,
-                activeFilter === option.type && styles.filterChipActive,
+                { backgroundColor: colors.background },
+                activeFilter === option.type && { backgroundColor: colors.primary },
               ]}
               onPress={() => handleFilterChange(option.type)}
             >
               <Text
                 style={[
                   styles.filterText,
-                  activeFilter === option.type && styles.filterTextActive,
+                  { color: colors.textSecondary },
+                  activeFilter === option.type && { color: colors.textOnPrimary },
                 ]}
               >
                 {option.label}
@@ -280,7 +283,7 @@ export default function LibraryScreen() {
 
       {/* Results count */}
       <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>
+        <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
           {filteredCues.length} cue{filteredCues.length !== 1 ? 's' : ''}
         </Text>
       </View>
@@ -302,12 +305,9 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   filterContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.surface,
   },
   filterContent: {
     paddingHorizontal: 16,
@@ -318,26 +318,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: Colors.background,
     marginRight: 8,
-  },
-  filterChipActive: {
-    backgroundColor: Colors.primary,
   },
   filterText: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  filterTextActive: {
-    color: Colors.textLight,
   },
   subFilterScroll: {
     flexGrow: 0,
     flexShrink: 0,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: Colors.surface,
   },
   categoryContent: {
     paddingHorizontal: 16,
@@ -348,34 +338,22 @@ const styles = StyleSheet.create({
     height: 95,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
     paddingVertical: 8,
     paddingHorizontal: 4,
   },
-  categoryCardActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '10',
-  },
   categoryLabel: {
     fontSize: 11,
     fontWeight: '500',
-    color: Colors.textSecondary,
     marginTop: 4,
     textAlign: 'center',
     lineHeight: 14,
   },
-  categoryLabelActive: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
   categoryCount: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.text,
     marginTop: 4,
   },
   resultsHeader: {
@@ -385,7 +363,6 @@ const styles = StyleSheet.create({
   },
   resultsCount: {
     fontSize: 14,
-    color: Colors.textSecondary,
   },
   scrollView: {
     flex: 1,

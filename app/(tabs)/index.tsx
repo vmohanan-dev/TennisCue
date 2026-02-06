@@ -8,13 +8,14 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 import { Button } from '@/components/Button';
 import { CueCard } from '@/components/CueCard';
 import { useUserStore } from '@/store';
 import { cues } from '@/data/cues';
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
   const { activeCueIds, level } = useUserStore();
   const activeCues = cues.filter((cue) => activeCueIds.includes(cue.id));
 
@@ -28,12 +29,12 @@ export default function HomeScreen() {
 
   if (activeCues.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIcon}>
-          <FontAwesome name="list-alt" size={48} color={Colors.textSecondary} />
+      <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.emptyIcon, { backgroundColor: colors.surface }]}>
+          <FontAwesome name="list-alt" size={48} color={colors.textSecondary} />
         </View>
-        <Text style={styles.emptyTitle}>No Active Cues</Text>
-        <Text style={styles.emptyDescription}>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>No Active Cues</Text>
+        <Text style={[styles.emptyDescription, { color: colors.textSecondary }]}>
           Add cues from the library to start tracking your practice focus areas.
         </Text>
         <Button
@@ -46,7 +47,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -54,39 +55,42 @@ export default function HomeScreen() {
       >
         {/* Quick Stats */}
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{activeCues.length}</Text>
-            <Text style={styles.statLabel}>Active Cues</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>{activeCues.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Active Cues</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: Colors[level || 'beginner'] }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.statNumber, { color: colors[level || 'beginner'] }]}>
               {level ? level.charAt(0).toUpperCase() + level.slice(1) : '-'}
             </Text>
-            <Text style={styles.statLabel}>Your Level</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Your Level</Text>
           </View>
         </View>
 
         {/* Session CTA */}
-        <TouchableOpacity style={styles.sessionCta} onPress={handleStartSession}>
+        <TouchableOpacity
+          style={[styles.sessionCta, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
+          onPress={handleStartSession}
+        >
           <View style={styles.sessionCtaContent}>
             <View style={styles.sessionCtaIcon}>
-              <FontAwesome name="play-circle" size={32} color={Colors.textLight} />
+              <FontAwesome name="play-circle" size={32} color={colors.textOnPrimary} />
             </View>
             <View style={styles.sessionCtaText}>
-              <Text style={styles.sessionCtaTitle}>Start Practice Session</Text>
+              <Text style={[styles.sessionCtaTitle, { color: colors.textOnPrimary }]}>Start Practice Session</Text>
               <Text style={styles.sessionCtaSubtitle}>
                 Rate your performance on active cues
               </Text>
             </View>
           </View>
-          <FontAwesome name="chevron-right" size={20} color={Colors.textLight} />
+          <FontAwesome name="chevron-right" size={20} color={colors.textOnPrimary} />
         </TouchableOpacity>
 
         {/* Active Cues List */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Focus Areas</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Focus Areas</Text>
           <TouchableOpacity onPress={handleBrowseLibrary}>
-            <Text style={styles.sectionLink}>Add More</Text>
+            <Text style={[styles.sectionLink, { color: colors.primary }]}>Add More</Text>
           </TouchableOpacity>
         </View>
 
@@ -101,7 +105,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollView: {
     flex: 1,
@@ -117,7 +120,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -130,22 +132,18 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 28,
     fontWeight: '800',
-    color: Colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    color: Colors.textSecondary,
   },
   sessionCta: {
-    backgroundColor: Colors.primary,
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
-    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -165,7 +163,6 @@ const styles = StyleSheet.create({
   sessionCtaTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.textLight,
     marginBottom: 4,
   },
   sessionCtaSubtitle: {
@@ -181,17 +178,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.text,
   },
   sectionLink: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.primary,
   },
   // Empty state
   emptyContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,
@@ -200,7 +194,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -208,12 +201,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: Colors.text,
     marginBottom: 12,
   },
   emptyDescription: {
     fontSize: 16,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,

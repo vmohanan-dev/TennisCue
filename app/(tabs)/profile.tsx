@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,23 +6,61 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 import { Card } from '@/components/Card';
 import { LevelBadge } from '@/components/LevelBadge';
-import { useUserStore, useSessionStore } from '@/store';
-import { cues, levelLabels } from '@/data/cues';
+import { useUserStore, useSessionStore, useAuthStore } from '@/store';
+import { cues } from '@/data/cues';
 
 export default function ProfileScreen() {
-  const { level, activeCueIds, resetOnboarding } = useUserStore();
-  const { sessions } = useSessionStore();
+  const { colors } = useTheme();
+  const { level, activeCueIds, resetOnboarding, syncToCloud, syncStatus, lastSyncedAt } =
+    useUserStore();
+  const { sessions, syncToCloud: syncSessions } = useSessionStore();
+  const { user, signOut, isLoading: authLoading } = useAuthStore();
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const totalCuesRated = sessions.reduce(
     (acc, s) => acc + s.cueRatings.length,
     0
   );
+
+  const handleSync = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    try {
+      await Promise.all([syncToCloud(user.id), syncSessions(user.id)]);
+      Alert.alert('Sync Complete', 'Your data has been synced to the cloud.');
+    } catch (error) {
+      Alert.alert('Sync Failed', 'Please try again later.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/(auth)/login');
+        },
+      },
+    ]);
+  };
+
+  const formatLastSynced = () => {
+    if (!lastSyncedAt) return 'Never';
+    const date = new Date(lastSyncedAt);
+    return date.toLocaleString();
+  };
 
   const handleRetakeQuiz = () => {
     Alert.alert(
@@ -56,89 +94,137 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
+      {/* Account Card */}
+      <Card variant="elevated" style={styles.accountCard}>
+        <View style={styles.accountHeader}>
+          <View style={[styles.avatarCircle, { backgroundColor: colors.primary }]}>
+            <FontAwesome name="user" size={24} color={colors.textOnPrimary} />
+          </View>
+          <View style={styles.accountInfo}>
+            <Text style={[styles.accountEmail, { color: colors.text }]} numberOfLines={1}>
+              {user?.email || 'Not signed in'}
+            </Text>
+            <View style={styles.syncStatus}>
+              {isSyncing || syncStatus === 'syncing' ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <FontAwesome
+                  name={syncStatus === 'error' ? 'exclamation-circle' : 'check-circle'}
+                  size={14}
+                  color={syncStatus === 'error' ? colors.error : colors.success}
+                />
+              )}
+              <Text style={[styles.syncText, { color: colors.textSecondary }]}>
+                {isSyncing || syncStatus === 'syncing'
+                  ? 'Syncing...'
+                  : `Last synced: ${formatLastSynced()}`}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.accountActions}>
+          <TouchableOpacity
+            style={[styles.syncButton, { backgroundColor: colors.secondary + '20' }]}
+            onPress={handleSync}
+            disabled={isSyncing || syncStatus === 'syncing'}
+          >
+            <FontAwesome name="refresh" size={14} color={colors.secondary} />
+            <Text style={[styles.syncButtonText, { color: colors.secondary }]}>Sync Now</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.signOutButton, { backgroundColor: colors.error + '15' }]}
+            onPress={handleSignOut}
+            disabled={authLoading}
+          >
+            <FontAwesome name="sign-out" size={14} color={colors.error} />
+            <Text style={[styles.signOutButtonText, { color: colors.error }]}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
+
       {/* Level Card */}
       <Card variant="elevated" style={styles.levelCard}>
         <View style={styles.levelHeader}>
           <View
             style={[
               styles.levelIcon,
-              { backgroundColor: level ? Colors[level] : Colors.textSecondary },
+              { backgroundColor: level ? colors[level] : colors.textSecondary },
             ]}
           >
-            <FontAwesome name="trophy" size={28} color={Colors.textLight} />
+            <FontAwesome name="trophy" size={28} color={colors.textOnPrimary} />
           </View>
           <View style={styles.levelInfo}>
-            <Text style={styles.levelLabel}>Your Level</Text>
+            <Text style={[styles.levelLabel, { color: colors.textSecondary }]}>Your Level</Text>
             {level ? (
               <LevelBadge level={level} size="medium" />
             ) : (
-              <Text style={styles.noLevel}>Not assessed</Text>
+              <Text style={[styles.noLevel, { color: colors.textSecondary }]}>Not assessed</Text>
             )}
           </View>
         </View>
-        <Text style={styles.levelDescription}>{getLevelDescription()}</Text>
-        <TouchableOpacity style={styles.retakeButton} onPress={handleRetakeQuiz}>
-          <FontAwesome name="refresh" size={14} color={Colors.primary} />
-          <Text style={styles.retakeButtonText}>Retake Assessment</Text>
+        <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>{getLevelDescription()}</Text>
+        <TouchableOpacity style={[styles.retakeButton, { backgroundColor: colors.background }]} onPress={handleRetakeQuiz}>
+          <FontAwesome name="refresh" size={14} color={colors.primary} />
+          <Text style={[styles.retakeButtonText, { color: colors.primary }]}>Retake Assessment</Text>
         </TouchableOpacity>
       </Card>
 
       {/* Stats Grid */}
-      <Text style={styles.sectionTitle}>Your Stats</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Stats</Text>
       <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <FontAwesome name="list" size={24} color={Colors.primary} />
-          <Text style={styles.statNumber}>{activeCueIds.length}</Text>
-          <Text style={styles.statLabel}>Active Cues</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <FontAwesome name="list" size={24} color={colors.primary} />
+          <Text style={[styles.statNumber, { color: colors.text }]}>{activeCueIds.length}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Active Cues</Text>
         </View>
-        <View style={styles.statCard}>
-          <FontAwesome name="calendar-check-o" size={24} color={Colors.secondary} />
-          <Text style={styles.statNumber}>{sessions.length}</Text>
-          <Text style={styles.statLabel}>Sessions</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <FontAwesome name="calendar-check-o" size={24} color={colors.secondary} />
+          <Text style={[styles.statNumber, { color: colors.text }]}>{sessions.length}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Sessions</Text>
         </View>
-        <View style={styles.statCard}>
-          <FontAwesome name="star" size={24} color={Colors.accent} />
-          <Text style={styles.statNumber}>{totalCuesRated}</Text>
-          <Text style={styles.statLabel}>Cues Rated</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <FontAwesome name="star" size={24} color={colors.accent} />
+          <Text style={[styles.statNumber, { color: colors.text }]}>{totalCuesRated}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Cues Rated</Text>
         </View>
-        <View style={styles.statCard}>
-          <FontAwesome name="book" size={24} color={Colors.beginner} />
-          <Text style={styles.statNumber}>{cues.length}</Text>
-          <Text style={styles.statLabel}>Total Cues</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <FontAwesome name="book" size={24} color={colors.beginner} />
+          <Text style={[styles.statNumber, { color: colors.text }]}>{cues.length}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total Cues</Text>
         </View>
       </View>
 
       {/* About */}
-      <Text style={styles.sectionTitle}>About TennisCue</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>About TennisCue</Text>
       <Card variant="outlined" style={styles.aboutCard}>
         <View style={styles.aboutItem}>
-          <FontAwesome name="info-circle" size={20} color={Colors.textSecondary} />
+          <FontAwesome name="info-circle" size={20} color={colors.textSecondary} />
           <View style={styles.aboutText}>
-            <Text style={styles.aboutLabel}>Version</Text>
-            <Text style={styles.aboutValue}>1.0.0</Text>
+            <Text style={[styles.aboutLabel, { color: colors.textSecondary }]}>Version</Text>
+            <Text style={[styles.aboutValue, { color: colors.text }]}>1.0.0</Text>
           </View>
         </View>
-        <View style={styles.aboutDivider} />
+        <View style={[styles.aboutDivider, { backgroundColor: colors.divider }]} />
         <View style={styles.aboutItem}>
-          <FontAwesome name="heart" size={20} color={Colors.error} />
+          <FontAwesome name="heart" size={20} color={colors.error} />
           <View style={styles.aboutText}>
-            <Text style={styles.aboutLabel}>Made with</Text>
-            <Text style={styles.aboutValue}>React Native & Expo</Text>
+            <Text style={[styles.aboutLabel, { color: colors.textSecondary }]}>Made with</Text>
+            <Text style={[styles.aboutValue, { color: colors.text }]}>React Native & Expo</Text>
           </View>
         </View>
       </Card>
 
       {/* Tips */}
-      <Card variant="elevated" style={styles.tipCard}>
+      <Card variant="elevated" style={[styles.tipCard, { backgroundColor: colors.accent + '20', borderColor: colors.accentLight }]}>
         <View style={styles.tipHeader}>
-          <FontAwesome name="lightbulb-o" size={20} color={Colors.accent} />
-          <Text style={styles.tipTitle}>Quick Tip</Text>
+          <FontAwesome name="lightbulb-o" size={20} color={colors.accent} />
+          <Text style={[styles.tipTitle, { color: colors.accent }]}>Quick Tip</Text>
         </View>
-        <Text style={styles.tipText}>
+        <Text style={[styles.tipText, { color: colors.text }]}>
           Focus on 3-5 cues at a time during practice. Too many cues can be
           overwhelming and reduce your ability to make meaningful improvements.
         </Text>
@@ -150,11 +236,72 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   content: {
     padding: 20,
     paddingBottom: 40,
+  },
+  accountCard: {
+    marginBottom: 24,
+  },
+  accountHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  accountInfo: {
+    flex: 1,
+  },
+  accountEmail: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  syncStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  syncText: {
+    fontSize: 13,
+  },
+  accountActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  syncButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  syncButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  signOutButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  signOutButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   levelCard: {
     marginBottom: 24,
@@ -177,17 +324,14 @@ const styles = StyleSheet.create({
   },
   levelLabel: {
     fontSize: 14,
-    color: Colors.textSecondary,
     marginBottom: 4,
   },
   noLevel: {
     fontSize: 16,
-    color: Colors.textSecondary,
     fontStyle: 'italic',
   },
   levelDescription: {
     fontSize: 15,
-    color: Colors.textSecondary,
     lineHeight: 22,
     marginBottom: 16,
   },
@@ -198,17 +342,14 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: Colors.background,
   },
   retakeButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.primary,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.text,
     marginBottom: 16,
   },
   statsGrid: {
@@ -219,7 +360,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '47%',
-    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -232,13 +372,11 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 28,
     fontWeight: '800',
-    color: Colors.text,
     marginTop: 12,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 13,
-    color: Colors.textSecondary,
   },
   aboutCard: {
     marginBottom: 24,
@@ -253,22 +391,17 @@ const styles = StyleSheet.create({
   },
   aboutLabel: {
     fontSize: 13,
-    color: Colors.textSecondary,
   },
   aboutValue: {
     fontSize: 15,
-    color: Colors.text,
     fontWeight: '500',
   },
   aboutDivider: {
     height: 1,
-    backgroundColor: Colors.divider,
     marginVertical: 12,
   },
   tipCard: {
-    backgroundColor: Colors.accentLight + '20',
     borderWidth: 1,
-    borderColor: Colors.accentLight,
   },
   tipHeader: {
     flexDirection: 'row',
@@ -279,11 +412,9 @@ const styles = StyleSheet.create({
   tipTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.accent,
   },
   tipText: {
     fontSize: 14,
-    color: Colors.text,
     lineHeight: 22,
   },
 });

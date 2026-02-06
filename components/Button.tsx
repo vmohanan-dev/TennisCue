@@ -7,7 +7,7 @@ import {
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface ButtonProps {
   title: string;
@@ -30,9 +30,27 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  const { colors } = useTheme();
+
+  const variantStyles: ViewStyle = {
+    ...(variant === 'primary' && { backgroundColor: colors.primary }),
+    ...(variant === 'secondary' && { backgroundColor: colors.secondary }),
+    ...(variant === 'outline' && {
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderColor: colors.primary,
+    }),
+  };
+
+  const variantTextStyles: TextStyle = {
+    ...(variant === 'primary' && { color: colors.textOnPrimary }),
+    ...(variant === 'secondary' && { color: colors.textOnPrimary }),
+    ...(variant === 'outline' && { color: colors.primary }),
+  };
+
   const buttonStyles = [
     styles.base,
-    styles[variant],
+    variantStyles,
     styles[`${size}Size`],
     disabled && styles.disabled,
     style,
@@ -40,7 +58,7 @@ export function Button({
 
   const textStyles = [
     styles.text,
-    styles[`${variant}Text`],
+    variantTextStyles,
     styles[`${size}Text`],
     disabled && styles.disabledText,
     textStyle,
@@ -55,7 +73,7 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'outline' ? Colors.primary : Colors.textLight}
+          color={variant === 'outline' ? colors.primary : colors.textOnPrimary}
         />
       ) : (
         <Text style={textStyles}>{title}</Text>
@@ -69,17 +87,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  primary: {
-    backgroundColor: Colors.primary,
-  },
-  secondary: {
-    backgroundColor: Colors.secondary,
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: Colors.primary,
   },
   smallSize: {
     paddingVertical: 8,
@@ -98,15 +105,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: '600',
-  },
-  primaryText: {
-    color: Colors.textLight,
-  },
-  secondaryText: {
-    color: Colors.textLight,
-  },
-  outlineText: {
-    color: Colors.primary,
   },
   smallText: {
     fontSize: 14,

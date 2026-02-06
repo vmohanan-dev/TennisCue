@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 import { Card } from './Card';
 import { LevelBadge } from './LevelBadge';
 import { Cue } from '@/types';
@@ -18,6 +18,7 @@ interface CueCardProps {
 }
 
 export function CueCard({ cue, showToggle = false, compact = false }: CueCardProps) {
+  const { colors } = useTheme();
   const { activeCueIds, toggleActiveCue } = useUserStore();
   const isActive = activeCueIds.includes(cue.id);
   const videos = getVideosForCue(cue.id);
@@ -36,7 +37,7 @@ export function CueCard({ cue, showToggle = false, compact = false }: CueCardPro
       try {
         await WebBrowser.openBrowserAsync(videos[0].url, {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
-          controlsColor: Colors.primary,
+          controlsColor: colors.primary,
         });
       } catch (error) {
         console.error('Error opening video:', error);
@@ -49,17 +50,17 @@ export function CueCard({ cue, showToggle = false, compact = false }: CueCardPro
       <Card variant="elevated" onPress={handlePress} style={styles.compactCard}>
         <View style={styles.compactContent}>
           <View style={styles.compactMain}>
-            <Text style={styles.compactTitle} numberOfLines={1}>
+            <Text style={[styles.compactTitle, { color: colors.text }]} numberOfLines={1}>
               {cue.title}
             </Text>
-            <Text style={styles.compactDescription} numberOfLines={2}>
+            <Text style={[styles.compactDescription, { color: colors.textSecondary }]} numberOfLines={2}>
               {cue.shortDescription}
             </Text>
           </View>
           <FontAwesome
             name="chevron-right"
             size={16}
-            color={Colors.textSecondary}
+            color={colors.textSecondary}
           />
         </View>
       </Card>
@@ -71,8 +72,8 @@ export function CueCard({ cue, showToggle = false, compact = false }: CueCardPro
       <View style={styles.header}>
         <View style={styles.badges}>
           <LevelBadge level={cue.level} />
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>{strokeLabels[cue.strokeType]}</Text>
+          <View style={[styles.tag, { backgroundColor: colors.background }]}>
+            <Text style={[styles.tagText, { color: colors.textSecondary }]}>{strokeLabels[cue.strokeType]}</Text>
           </View>
         </View>
         {showToggle && (
@@ -80,19 +81,19 @@ export function CueCard({ cue, showToggle = false, compact = false }: CueCardPro
             <FontAwesome
               name={isActive ? 'check-circle' : 'plus-circle'}
               size={28}
-              color={isActive ? Colors.primary : Colors.textSecondary}
+              color={isActive ? colors.primary : colors.textSecondary}
             />
           </TouchableOpacity>
         )}
       </View>
 
-      <Text style={styles.title}>{cue.title}</Text>
-      <Text style={styles.description}>{cue.shortDescription}</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{cue.title}</Text>
+      <Text style={[styles.description, { color: colors.textSecondary }]}>{cue.shortDescription}</Text>
 
       <View style={styles.footer}>
         <View style={styles.skillArea}>
-          <FontAwesome name="tag" size={12} color={Colors.textSecondary} />
-          <Text style={styles.skillAreaText}>{skillAreaLabels[cue.skillArea]}</Text>
+          <FontAwesome name="tag" size={12} color={colors.textSecondary} />
+          <Text style={[styles.skillAreaText, { color: colors.textSecondary }]}>{skillAreaLabels[cue.skillArea]}</Text>
         </View>
         <View style={styles.footerRight}>
           {hasVideos && (
@@ -100,7 +101,7 @@ export function CueCard({ cue, showToggle = false, compact = false }: CueCardPro
               <FontAwesome name="youtube-play" size={20} color="#FF0000" />
             </TouchableOpacity>
           )}
-          <FontAwesome name="chevron-right" size={14} color={Colors.textSecondary} />
+          <FontAwesome name="chevron-right" size={14} color={colors.textSecondary} />
         </View>
       </View>
     </Card>
@@ -123,14 +124,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: Colors.background,
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 12,
   },
   tagText: {
     fontSize: 12,
-    color: Colors.textSecondary,
     fontWeight: '500',
   },
   toggleButton: {
@@ -139,12 +138,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.text,
     marginBottom: 6,
   },
   description: {
     fontSize: 15,
-    color: Colors.textSecondary,
     lineHeight: 22,
     marginBottom: 12,
   },
@@ -160,7 +157,6 @@ const styles = StyleSheet.create({
   },
   skillAreaText: {
     fontSize: 13,
-    color: Colors.textSecondary,
   },
   footerRight: {
     flexDirection: 'row',
@@ -186,12 +182,10 @@ const styles = StyleSheet.create({
   compactTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
     marginBottom: 4,
   },
   compactDescription: {
     fontSize: 14,
-    color: Colors.textSecondary,
     lineHeight: 20,
   },
 });

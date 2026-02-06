@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session, CueRating } from '@/types';
+import { syncService } from '@/services/sync.service';
 
 interface SessionState {
   sessions: Session[];
@@ -11,6 +12,10 @@ interface SessionState {
   getSessionById: (sessionId: string) => Session | undefined;
   getRecentSessions: (limit?: number) => Session[];
   getCueProgress: (cueId: string) => { date: string; rating: number }[];
+  // Sync actions
+  syncToCloud: (userId: string) => Promise<void>;
+  fetchFromCloud: (userId: string) => Promise<void>;
+  mergeAndSync: (userId: string) => Promise<void>;
 }
 
 export const useSessionStore = create<SessionState>()(
@@ -53,6 +58,35 @@ export const useSessionStore = create<SessionState>()(
             rating: session.cueRatings.find((r) => r.cueId === cueId)?.rating || 0,
           }))
           .reverse(); // Oldest first for progress view
+      },
+
+      // Sync actions
+      syncToCloud: async (userId: string) => {
+        const { sessions } = get();
+        await syncService.syncSessions(userId, sessions);
+      },
+
+      fetchFromCloud: async (userId: string) => {
+        const cloudSessions = await syncService.fetchSessions(userId);
+        if (cloudSessions.length > 0) {
+          set({ sessions: cloudSessions });
+        }
+      },
+
+      mergeAndSync: async (userId: string) => {
+        const { sessions: localSessions } = get();
+
+        // Fetch cloud sessions
+        const cloudSessions = await syncService.fetchSessions(userId);
+
+        // Merge sessions
+        const mergedSessions = syncService.mergeSessions(localSessions, cloudSessions);
+
+        // Update local state
+        set({ sessions: mergedSessions });
+
+        // Sync merged sessions to cloud
+        await syncService.syncSessions(userId, mergedSessions);
       },
     }),
     {

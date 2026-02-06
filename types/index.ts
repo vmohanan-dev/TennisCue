@@ -77,3 +77,19 @@ export interface VideoResource {
   relatedCueIds: string[];
   primaryCueId?: string;
 }
+
+// Auth types
+export interface AuthUser {
+  id: string;
+  email: string;
+  created_at?: string;
+}
+
+// Sync types
+export type SyncStatus = 'idle' | 'syncing' | 'error' | 'offline';
+
+export interface SyncState {
+  lastSyncedAt: string | null;
+  status: SyncStatus;
+  pendingChanges: number;
+}

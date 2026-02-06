@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface StarRatingProps {
   rating: number;
@@ -18,6 +18,7 @@ export function StarRating({
   onChange,
   readonly = false,
 }: StarRatingProps) {
+  const { colors } = useTheme();
   const stars = [];
 
   for (let i = 1; i <= maxRating; i++) {
@@ -32,7 +33,7 @@ export function StarRating({
         <FontAwesome
           name={filled ? 'star' : 'star-o'}
           size={size}
-          color={filled ? Colors.starFilled : Colors.starEmpty}
+          color={filled ? colors.starFilled : colors.starEmpty}
         />
       </TouchableOpacity>
     );
