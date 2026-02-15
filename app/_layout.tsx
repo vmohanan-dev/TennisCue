@@ -24,18 +24,18 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
+  const { isInitialized, initialize } = useAuthStore();
+
+  // Initialize auth on mount
+  useEffect(() => {
+    initialize();
+  }, []);
 
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
+  if (!loaded || !isInitialized) {
     return null;
   }
 
@@ -44,29 +44,22 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
-  const { user, isInitialized, initialize } = useAuthStore();
-
-  // Initialize auth on mount
-  useEffect(() => {
-    initialize();
-  }, []);
+  const { user, isInitialized } = useAuthStore();
 
   // Handle navigation based on auth and onboarding state
   useEffect(() => {
     if (!isInitialized) return;
 
-    console.log('Auth state changed:', { user: !!user, hasCompletedOnboarding });
-
     if (!user) {
-      // Not authenticated - go to login
       router.replace('/(auth)/login');
     } else if (!hasCompletedOnboarding) {
-      // Authenticated but needs onboarding
       router.replace('/onboarding/welcome');
     } else {
-      // Authenticated and onboarded - go to main app
       router.replace('/(tabs)');
     }
+
+    // Hide splash screen after navigation
+    SplashScreen.hideAsync();
   }, [user, isInitialized, hasCompletedOnboarding]);
 
   return (
@@ -96,6 +89,14 @@ function RootLayoutNav() {
               options={{
                 presentation: 'modal',
                 headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="court-mode"
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+                gestureEnabled: true,
               }}
             />
             <Stack.Screen

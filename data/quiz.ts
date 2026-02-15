@@ -1,4 +1,4 @@
-import { QuizQuestion } from '@/types';
+import { QuizQuestion, SkillLevel } from '@/types';
 
 export const quizQuestions: QuizQuestion[] = [
   {
@@ -74,3 +74,53 @@ export function calculateLevel(totalPoints: number): 'beginner' | 'intermediate'
     return 'advanced';
   }
 }
+
+export interface LevelPersona {
+  personaName: string;
+  headline: string;
+  welcomeMessage: string;
+  ctaLabel: string;
+  whatsNext: {
+    icon: string;
+    text: string;
+  }[];
+}
+
+export const levelPersonas: Record<SkillLevel, LevelPersona> = {
+  beginner: {
+    personaName: 'Rising Rally',
+    headline: "You're a Rising Rally!",
+    welcomeMessage:
+      "Welcome to your tennis journey! Every great player started exactly where you are. TennisCue will guide you through the fundamentals with clear, focused cues that build your confidence on the court.",
+    ctaLabel: 'Start Your Journey',
+    whatsNext: [
+      { icon: 'hand-paper-o', text: 'Master the fundamentals' },
+      { icon: 'exchange', text: 'Build your rally game' },
+      { icon: 'repeat', text: 'Develop consistent strokes' },
+    ],
+  },
+  intermediate: {
+    personaName: 'Court Strategist',
+    headline: "You're a Court Strategist!",
+    welcomeMessage:
+      "You've built a solid foundation \u2014 now it's time to take your game to the next level. TennisCue will help you refine your technique, add variety to your shots, and start thinking more tactically.",
+    ctaLabel: 'Level Up',
+    whatsNext: [
+      { icon: 'bullseye', text: 'Sharpen your technique' },
+      { icon: 'random', text: 'Add tactical variety' },
+      { icon: 'wrench', text: 'Strengthen your weak spots' },
+    ],
+  },
+  advanced: {
+    personaName: 'Match Maestro',
+    headline: "You're a Match Maestro!",
+    welcomeMessage:
+      "Impressive skill set! You know the game well, and TennisCue is here to help you fine-tune the details that separate good players from great ones. Precision, strategy, and mental toughness await.",
+    ctaLabel: 'Sharpen Your Game',
+    whatsNext: [
+      { icon: 'crosshairs', text: 'Fine-tune shot selection' },
+      { icon: 'lightbulb-o', text: 'Mental game mastery' },
+      { icon: 'trophy', text: 'Competition-ready drills' },
+    ],
+  },
+};

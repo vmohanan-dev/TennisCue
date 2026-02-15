@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { quizQuestions, calculateLevel } from '@/data/quiz';
 import { useUserStore } from '@/store';
@@ -21,13 +20,17 @@ export default function OnboardingQuiz() {
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-  const { setLevel, setQuizAnswers, completeOnboarding } = useUserStore();
+  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldAutoAdvance = useRef(false);
+
+  const { setLevel, setQuizAnswers } = useUserStore();
 
   const question = quizQuestions[currentQuestion];
   const progress = (currentQuestion + 1) / quizQuestions.length;
   const isLastQuestion = currentQuestion === quizQuestions.length - 1;
 
   const handleSelectOption = (optionId: string, points: number) => {
+    shouldAutoAdvance.current = true;
     setSelectedOption(optionId);
     const newAnswer: QuizAnswer = {
       questionId: question.id,
@@ -61,9 +64,9 @@ export default function OnboardingQuiz() {
       const level = calculateLevel(finalTotal);
       setLevel(level);
       setQuizAnswers(answers);
-      completeOnboarding();
 
-      // Navigate to results
+      // Navigate to results first, then complete onboarding from results screen
+      // (calling completeOnboarding here would trigger _layout.tsx to redirect to /(tabs) before results shows)
       router.replace({
         pathname: '/onboarding/results',
         params: { level },
@@ -76,6 +79,7 @@ export default function OnboardingQuiz() {
 
   const handleBack = () => {
     if (currentQuestion > 0) {
+      shouldAutoAdvance.current = false;
       setCurrentQuestion(currentQuestion - 1);
       const prevAnswer = answers.find(
         (a) => a.questionId === quizQuestions[currentQuestion - 1].id
@@ -83,6 +87,23 @@ export default function OnboardingQuiz() {
       setSelectedOption(prevAnswer?.answerId || null);
     }
   };
+
+  useEffect(() => {
+    if (selectedOption === null || !shouldAutoAdvance.current) return;
+
+    const delay = isLastQuestion ? 1000 : 600;
+
+    autoAdvanceTimer.current = setTimeout(() => {
+      handleNext();
+    }, delay);
+
+    return () => {
+      if (autoAdvanceTimer.current) {
+        clearTimeout(autoAdvanceTimer.current);
+        autoAdvanceTimer.current = null;
+      }
+    };
+  }, [selectedOption, currentQuestion]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -151,16 +172,6 @@ export default function OnboardingQuiz() {
         </View>
       </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Button
-          title={isLastQuestion ? 'See My Level' : 'Continue'}
-          onPress={handleNext}
-          disabled={!selectedOption}
-          size="large"
-          style={styles.continueButton}
-        />
-      </View>
     </SafeAreaView>
   );
 }
@@ -261,12 +272,5 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     fontWeight: '600',
     color: Colors.primary,
-  },
-  footer: {
-    padding: 20,
-    paddingBottom: 30,
-  },
-  continueButton: {
-    width: '100%',
   },
 });

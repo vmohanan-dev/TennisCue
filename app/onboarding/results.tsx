@@ -1,21 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 import { Button } from '@/components/Button';
+import { LevelBadge } from '@/components/LevelBadge';
+import { CueCard } from '@/components/CueCard';
 import { SkillLevel } from '@/types';
-import { levelLabels } from '@/data/cues';
-
-const levelDescriptions: Record<SkillLevel, string> = {
-  beginner:
-    "You're just starting your tennis journey! We'll focus on fundamental techniques like grip, stance, and basic stroke mechanics.",
-  intermediate:
-    "You've got the basics down. Now it's time to refine your technique, add more consistency, and start thinking tactically.",
-  advanced:
-    "You're a skilled player ready to fine-tune your game. We'll work on shot variety, court positioning, and mental toughness.",
-};
+import { levelPersonas } from '@/data/quiz';
+import { getStarterCues } from '@/data/cues';
+import { useUserStore } from '@/store';
 
 const levelIcons: Record<SkillLevel, string> = {
   beginner: 'star-o',
@@ -26,58 +21,84 @@ const levelIcons: Record<SkillLevel, string> = {
 export default function OnboardingResults() {
   const { level } = useLocalSearchParams<{ level: SkillLevel }>();
   const skillLevel = (level as SkillLevel) || 'beginner';
+  const { colors } = useTheme();
+  const { completeOnboarding, addActiveCue } = useUserStore();
+  const persona = levelPersonas[skillLevel];
+  const starterCues = getStarterCues(skillLevel);
 
   const handleContinue = () => {
+    starterCues.forEach((cue) => addActiveCue(cue.id));
+    completeOnboarding();
     router.replace('/(tabs)');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Icon */}
-        <View style={[styles.iconContainer, { backgroundColor: Colors[skillLevel] }]}>
-          <FontAwesome
-            name={levelIcons[skillLevel] as any}
-            size={60}
-            color={Colors.textLight}
-          />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Celebratory Header */}
+        <View style={styles.headerSection}>
+          <View style={[styles.iconContainer, { backgroundColor: colors[skillLevel] }]}>
+            <FontAwesome
+              name={levelIcons[skillLevel] as any}
+              size={60}
+              color={colors.textOnPrimary}
+            />
+          </View>
+          <Text style={[styles.headline, { color: colors.text }]}>
+            {persona.headline}
+          </Text>
+          <LevelBadge level={skillLevel} size="medium" />
         </View>
 
-        {/* Level */}
-        <Text style={styles.levelLabel}>Your Level</Text>
-        <Text style={[styles.levelText, { color: Colors[skillLevel] }]}>
-          {levelLabels[skillLevel]}
+        {/* Welcome Message */}
+        <Text style={[styles.welcomeMessage, { color: colors.textSecondary }]}>
+          {persona.welcomeMessage}
         </Text>
 
-        {/* Description */}
-        <Text style={styles.description}>{levelDescriptions[skillLevel]}</Text>
-
-        {/* Stats preview */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <FontAwesome name="book" size={24} color={Colors.primary} />
-            <Text style={styles.statValue}>
-              {skillLevel === 'beginner' ? '12' : skillLevel === 'intermediate' ? '20' : '25'}
-            </Text>
-            <Text style={styles.statLabel}>Cues Available</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <FontAwesome name="trophy" size={24} color={Colors.accent} />
-            <Text style={styles.statValue}>Track</Text>
-            <Text style={styles.statLabel}>Your Progress</Text>
-          </View>
+        {/* What's Next */}
+        <View style={styles.whatsNextSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            What's Next For You
+          </Text>
+          {persona.whatsNext.map((item, index) => (
+            <View key={index} style={styles.whatsNextItem}>
+              <View style={[styles.whatsNextIcon, { backgroundColor: colors[skillLevel] + '20' }]}>
+                <FontAwesome
+                  name={item.icon as any}
+                  size={20}
+                  color={colors[skillLevel]}
+                />
+              </View>
+              <Text style={[styles.whatsNextText, { color: colors.text }]}>
+                {item.text}
+              </Text>
+            </View>
+          ))}
         </View>
-      </View>
 
-      <View style={styles.footer}>
+        {/* Your First Cues */}
+        <View style={styles.cuesSection}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Your First Cues
+          </Text>
+          {starterCues.map((cue) => (
+            <CueCard key={cue.id} cue={cue} compact />
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* CTA Footer */}
+      <View style={[styles.footer, { borderTopColor: colors.divider }]}>
         <Button
-          title="Browse Cues"
+          title={persona.ctaLabel}
           onPress={handleContinue}
           size="large"
           style={styles.button}
         />
-        <Text style={styles.footerNote}>
+        <Text style={[styles.footerNote, { color: colors.textSecondary }]}>
           You can retake the quiz anytime in Settings
         </Text>
       </View>
@@ -88,13 +109,16 @@ export default function OnboardingResults() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 20,
+  },
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 24,
   },
   iconContainer: {
     width: 120,
@@ -102,73 +126,68 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
   },
-  levelLabel: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    marginBottom: 8,
-  },
-  levelText: {
-    fontSize: 36,
+  headline: {
+    fontSize: 28,
     fontWeight: '800',
-    marginBottom: 20,
+    textAlign: 'center',
+    marginBottom: 12,
   },
-  description: {
+  welcomeMessage: {
     fontSize: 16,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 40,
+    marginBottom: 32,
+    paddingHorizontal: 8,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 24,
+  whatsNextSection: {
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    marginBottom: 32,
   },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: Colors.border,
-    marginHorizontal: 20,
-  },
-  statValue: {
-    fontSize: 24,
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: '700',
-    color: Colors.text,
-    marginTop: 10,
+    marginBottom: 16,
   },
-  statLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 4,
+  whatsNextItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  whatsNextIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  whatsNextText: {
+    fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
+  },
+  cuesSection: {
+    width: '100%',
+    marginBottom: 16,
   },
   footer: {
     padding: 20,
     paddingBottom: 30,
     alignItems: 'center',
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   button: {
     width: '100%',
   },
   footerNote: {
     fontSize: 14,
-    color: Colors.textSecondary,
     marginTop: 16,
   },
 });

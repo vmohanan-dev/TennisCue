@@ -9,6 +9,8 @@ interface StarRatingProps {
   size?: number;
   onChange?: (rating: number) => void;
   readonly?: boolean;
+  filledColor?: string;
+  emptyColor?: string;
 }
 
 export function StarRating({
@@ -17,6 +19,8 @@ export function StarRating({
   size = 24,
   onChange,
   readonly = false,
+  filledColor,
+  emptyColor,
 }: StarRatingProps) {
   const { colors } = useTheme();
   const stars = [];
@@ -33,7 +37,7 @@ export function StarRating({
         <FontAwesome
           name={filled ? 'star' : 'star-o'}
           size={size}
-          color={filled ? colors.starFilled : colors.starEmpty}
+          color={filled ? (filledColor ?? colors.starFilled) : (emptyColor ?? colors.starEmpty)}
         />
       </TouchableOpacity>
     );

@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const activeCues = cues.filter((cue) => activeCueIds.includes(cue.id));
 
   const handleStartSession = () => {
-    router.push('/session/new');
+    router.push('/court-mode');
   };
 
   const handleBrowseLibrary = () => {
@@ -60,7 +60,11 @@ export default function HomeScreen() {
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Active Cues</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statNumber, { color: colors[level || 'beginner'] }]}>
+            <Text
+              style={[styles.statNumber, { color: colors[level || 'beginner'] }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               {level ? level.charAt(0).toUpperCase() + level.slice(1) : '-'}
             </Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Your Level</Text>
@@ -79,7 +83,7 @@ export default function HomeScreen() {
             <View style={styles.sessionCtaText}>
               <Text style={[styles.sessionCtaTitle, { color: colors.textOnPrimary }]}>Start Practice Session</Text>
               <Text style={styles.sessionCtaSubtitle}>
-                Rate your performance on active cues
+                Review and rate your cues on court
               </Text>
             </View>
           </View>

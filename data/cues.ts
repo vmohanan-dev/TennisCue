@@ -1,4 +1,4 @@
-import { Cue } from '@/types';
+import { Cue, SkillLevel } from '@/types';
 
 export const cues: Cue[] = [
   // === BEGINNER CUES ===
@@ -1295,3 +1295,25 @@ export const levelLabels: Record<string, string> = {
   intermediate: 'Intermediate',
   advanced: 'Advanced',
 };
+
+export function getStarterCues(level: SkillLevel): Cue[] {
+  const levelCues = cues.filter((c) => c.level === level);
+
+  if (level === 'beginner') {
+    return levelCues
+      .filter((c) => c.sortOrder !== undefined)
+      .sort((a, b) => (a.sortOrder || 999) - (b.sortOrder || 999))
+      .slice(0, 3);
+  }
+
+  // For intermediate/advanced, pick diverse stroke types
+  const seen = new Set<string>();
+  const selected: Cue[] = [];
+  for (const cue of levelCues) {
+    if (!seen.has(cue.strokeType) && selected.length < 3) {
+      selected.push(cue);
+      seen.add(cue.strokeType);
+    }
+  }
+  return selected;
+}
