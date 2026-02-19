@@ -21,6 +21,9 @@
         "NSCameraUsageDescription": "TennisCue needs camera access to record your tennis sessions.",
         "NSMicrophoneUsageDescription": "TennisCue needs microphone access to record audio during sessions.",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.tenniscue.app"]
       }
     },
     "android": {
@@ -39,10 +42,14 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "autolinking": {
+      "nativeModulesDir": "./modules"
     },
     "extra": {
       "router": {},

@@ -9,7 +9,7 @@ import {
   Image,
   Linking,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Button } from '@/components/Button';
@@ -21,12 +21,17 @@ import {
   getVideoThumbnailUrl,
   getTimestampedVideoUrl,
 } from '@/data/cue-videos';
-import { useUserStore, useSessionStore } from '@/store';
+import { useUserStore, useSessionStore, useAuthStore } from '@/store';
 
 export default function CueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { activeCueIds, toggleActiveCue } = useUserStore();
   const { getCueProgress } = useSessionStore();
+  const { user } = useAuthStore();
+
+  if (!user) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
   const cue = cues.find((c) => c.id === id);
   const isActive = activeCueIds.includes(id || '');

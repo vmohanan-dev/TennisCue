@@ -10,6 +10,7 @@ import 'react-native-url-polyfill/auto';
 
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useAuthStore, useUserStore } from '@/store';
+import { syncWidgetData } from '@/services/widgetSync';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -27,9 +28,10 @@ export default function RootLayout() {
   });
   const { isInitialized, initialize } = useAuthStore();
 
-  // Initialize auth on mount
+  // Initialize auth on mount and sync widget data
   useEffect(() => {
     initialize();
+    syncWidgetData(useUserStore.getState().activeCueIds);
   }, []);
 
   useEffect(() => {

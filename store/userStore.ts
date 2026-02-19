@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SkillLevel, QuizAnswer, UserProfile, SyncStatus } from '@/types';
 import { syncService, UserProfileData } from '@/services/sync.service';
+import { syncWidgetData } from '@/services/widgetSync';
 
 interface UserState extends UserProfile {
   // Sync state
@@ -164,3 +165,12 @@ export const useUserStore = create<UserState>()(
     }
   )
 );
+
+// Sync active cues to iOS widget whenever activeCueIds changes
+let prevActiveCueIds: string[] = [];
+useUserStore.subscribe((state) => {
+  if (JSON.stringify(state.activeCueIds) !== JSON.stringify(prevActiveCueIds)) {
+    prevActiveCueIds = state.activeCueIds;
+    syncWidgetData(state.activeCueIds);
+  }
+});

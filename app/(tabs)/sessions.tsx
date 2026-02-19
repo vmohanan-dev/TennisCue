@@ -8,13 +8,14 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
+import { useTheme } from '@/components/ThemeProvider';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useSessionStore, useUserStore } from '@/store';
 import { cues } from '@/data/cues';
 
 export default function SessionsScreen() {
+  const { colors } = useTheme();
   const { sessions } = useSessionStore();
   const { activeCueIds } = useUserStore();
 
@@ -60,12 +61,12 @@ export default function SessionsScreen() {
 
   if (sessions.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIcon}>
-          <FontAwesome name="calendar-o" size={48} color={Colors.textSecondary} />
+      <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.emptyIcon, { backgroundColor: colors.surface }]}>
+          <FontAwesome name="calendar-o" size={48} color={colors.textSecondary} />
         </View>
-        <Text style={styles.emptyTitle}>No Sessions Yet</Text>
-        <Text style={styles.emptyDescription}>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>No Sessions Yet</Text>
+        <Text style={[styles.emptyDescription, { color: colors.textSecondary }]}>
           {activeCueIds.length === 0
             ? 'Add some cues to your focus list first, then log your practice sessions.'
             : 'Log your first practice session to start tracking your progress.'}
@@ -82,18 +83,18 @@ export default function SessionsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Quick Stats */}
       <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{sessions.length}</Text>
-          <Text style={styles.statLabel}>Sessions</Text>
+        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.statNumber, { color: colors.primary }]}>{sessions.length}</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Sessions</Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>
+        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.statNumber, { color: colors.primary }]}>
             {sessions.reduce((acc, s) => acc + s.cueRatings.length, 0)}
           </Text>
-          <Text style={styles.statLabel}>Cues Rated</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Cues Rated</Text>
         </View>
       </View>
 
@@ -104,10 +105,10 @@ export default function SessionsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>History</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>History</Text>
           <TouchableOpacity onPress={handleNewSession} style={styles.addButton}>
-            <FontAwesome name="plus" size={16} color={Colors.primary} />
-            <Text style={styles.addButtonText}>New</Text>
+            <FontAwesome name="plus" size={16} color={colors.primary} />
+            <Text style={[styles.addButtonText, { color: colors.primary }]}>New</Text>
           </TouchableOpacity>
         </View>
 
@@ -120,13 +121,13 @@ export default function SessionsScreen() {
           >
             <View style={styles.sessionHeader}>
               <View>
-                <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
-                <Text style={styles.sessionTime}>{formatTime(session.date)}</Text>
+                <Text style={[styles.sessionDate, { color: colors.text }]}>{formatDate(session.date)}</Text>
+                <Text style={[styles.sessionTime, { color: colors.textSecondary }]}>{formatTime(session.date)}</Text>
               </View>
               <View style={styles.sessionStats}>
                 <View style={styles.avgRating}>
-                  <FontAwesome name="star" size={16} color={Colors.starFilled} />
-                  <Text style={styles.avgRatingText}>
+                  <FontAwesome name="star" size={16} color={colors.starFilled} />
+                  <Text style={[styles.avgRatingText, { color: colors.text }]}>
                     {getAverageRating(session.cueRatings)}
                   </Text>
                 </View>
@@ -134,7 +135,7 @@ export default function SessionsScreen() {
             </View>
 
             <View style={styles.sessionCues}>
-              <Text style={styles.sessionCuesLabel}>
+              <Text style={[styles.sessionCuesLabel, { color: colors.textSecondary }]}>
                 {session.cueRatings.length} cue
                 {session.cueRatings.length !== 1 ? 's' : ''} practiced
               </Text>
@@ -142,15 +143,15 @@ export default function SessionsScreen() {
                 {session.cueRatings.slice(0, 3).map((rating, index) => {
                   const cue = cues.find((c) => c.id === rating.cueId);
                   return (
-                    <View key={rating.cueId} style={styles.cueChip}>
-                      <Text style={styles.cueChipText} numberOfLines={1}>
+                    <View key={rating.cueId} style={[styles.cueChip, { backgroundColor: colors.background }]}>
+                      <Text style={[styles.cueChipText, { color: colors.textSecondary }]} numberOfLines={1}>
                         {cue?.title || 'Unknown'}
                       </Text>
                     </View>
                   );
                 })}
                 {session.cueRatings.length > 3 && (
-                  <Text style={styles.moreText}>
+                  <Text style={[styles.moreText, { color: colors.textSecondary }]}>
                     +{session.cueRatings.length - 3} more
                   </Text>
                 )}
@@ -158,14 +159,14 @@ export default function SessionsScreen() {
             </View>
 
             {session.notes && (
-              <Text style={styles.sessionNotes} numberOfLines={2}>
+              <Text style={[styles.sessionNotes, { color: colors.textSecondary }]} numberOfLines={2}>
                 {session.notes}
               </Text>
             )}
 
-            <View style={styles.sessionFooter}>
-              <Text style={styles.viewDetails}>View Details</Text>
-              <FontAwesome name="chevron-right" size={14} color={Colors.primary} />
+            <View style={[styles.sessionFooter, { borderTopColor: colors.divider }]}>
+              <Text style={[styles.viewDetails, { color: colors.primary }]}>View Details</Text>
+              <FontAwesome name="chevron-right" size={14} color={colors.primary} />
             </View>
           </Card>
         ))}
@@ -177,7 +178,6 @@ export default function SessionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -187,7 +187,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
@@ -200,12 +199,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: '800',
-    color: Colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 13,
-    color: Colors.textSecondary,
   },
   scrollView: {
     flex: 1,
@@ -223,7 +220,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.text,
   },
   addButton: {
     flexDirection: 'row',
@@ -233,7 +229,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.primary,
   },
   sessionCard: {
     marginBottom: 12,
@@ -247,11 +242,9 @@ const styles = StyleSheet.create({
   sessionDate: {
     fontSize: 17,
     fontWeight: '600',
-    color: Colors.text,
   },
   sessionTime: {
     fontSize: 14,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
   sessionStats: {
@@ -265,14 +258,12 @@ const styles = StyleSheet.create({
   avgRatingText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
   },
   sessionCues: {
     marginBottom: 12,
   },
   sessionCuesLabel: {
     fontSize: 13,
-    color: Colors.textSecondary,
     marginBottom: 8,
   },
   cuePreview: {
@@ -282,7 +273,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cueChip: {
-    backgroundColor: Colors.background,
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 12,
@@ -290,16 +280,13 @@ const styles = StyleSheet.create({
   },
   cueChipText: {
     fontSize: 12,
-    color: Colors.textSecondary,
   },
   moreText: {
     fontSize: 12,
-    color: Colors.textSecondary,
     fontStyle: 'italic',
   },
   sessionNotes: {
     fontSize: 14,
-    color: Colors.textSecondary,
     fontStyle: 'italic',
     marginBottom: 12,
   },
@@ -310,17 +297,14 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: Colors.divider,
   },
   viewDetails: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.primary,
   },
   // Empty state
   emptyContainer: {
     flex: 1,
-    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 40,
@@ -329,7 +313,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -337,12 +320,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: Colors.text,
     marginBottom: 12,
   },
   emptyDescription: {
     fontSize: 16,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,

@@ -187,15 +187,15 @@ export default function HomeScreen() {
                         key={star}
                         name={star <= item.rating ? 'star' : 'star-o'}
                         size={12}
-                        color={star <= item.rating ? '#FFB703' : colors.border}
+                        color={star <= item.rating ? colors.starFilled : colors.border}
                       />
                     ))}
                   </View>
                   {item.trend === 'up' && (
-                    <FontAwesome name="arrow-up" size={12} color="#2D6A4F" />
+                    <FontAwesome name="arrow-up" size={12} color={colors.success} />
                   )}
                   {item.trend === 'down' && (
-                    <FontAwesome name="arrow-down" size={12} color="#E63946" />
+                    <FontAwesome name="arrow-down" size={12} color={colors.error} />
                   )}
                   {item.trend === 'same' && (
                     <FontAwesome name="minus" size={12} color={colors.textSecondary} />
@@ -256,7 +256,7 @@ export default function HomeScreen() {
               </Text>
             </View>
             {streak.isAtRisk && (
-              <Text style={[styles.streakWarning, { color: '#FF6B35' }]}>
+              <Text style={[styles.streakWarning, { color: colors.warning }]}>
                 Practice today to keep it!
               </Text>
             )}
@@ -274,7 +274,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.sessionCtaText}>
               <Text style={[styles.sessionCtaTitle, { color: colors.textOnPrimary }]}>Start Practice Session</Text>
-              <Text style={styles.sessionCtaSubtitle}>
+              <Text style={[styles.sessionCtaSubtitle, { color: colors.textOnPrimary + 'CC' }]}>
                 {getSessionPrompt(sessions)}
               </Text>
             </View>
@@ -390,7 +390,6 @@ const styles = StyleSheet.create({
   },
   sessionCtaSubtitle: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
   },
   sectionHeader: {
     flexDirection: 'row',
