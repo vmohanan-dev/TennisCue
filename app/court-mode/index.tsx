@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Linking,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
@@ -18,6 +19,7 @@ import { DotIndicator } from '@/components/DotIndicator';
 import { Button } from '@/components/Button';
 import { useUserStore } from '@/store';
 import { cues } from '@/data/cues';
+import { getVideoForCue, getTimestampedVideoUrl } from '@/data/cue-videos';
 import { Cue } from '@/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -34,9 +36,25 @@ const COURT = {
 };
 
 function CueCardItem({ cue }: { cue: Cue }) {
+  const [showVideo, setShowVideo] = useState(false);
+  const cueVideo = getVideoForCue(cue.id);
+
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.card}>
+        {cueVideo && (
+          <TouchableOpacity
+            style={styles.videoIconButton}
+            onPress={() => setShowVideo(!showVideo)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <FontAwesome
+              name="play-circle"
+              size={22}
+              color={showVideo ? COURT.accent : COURT.textSecondary}
+            />
+          </TouchableOpacity>
+        )}
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.cardScrollContent}
@@ -44,6 +62,34 @@ function CueCardItem({ cue }: { cue: Cue }) {
           <Text style={styles.cardTitle}>{cue.title}</Text>
           <Text style={styles.cardShortDesc}>{cue.shortDescription}</Text>
           <Text style={styles.cardFullDesc}>{cue.fullDescription}</Text>
+
+          {showVideo && cueVideo && (
+            <View style={styles.videoPanel}>
+              <View style={styles.videoPanelDivider} />
+              <Text style={styles.videoPanelTitle}>
+                {cueVideo.videoTitle}
+              </Text>
+              <Text style={styles.videoPanelDesc}>
+                {cueVideo.segmentDescription}
+              </Text>
+              <TouchableOpacity
+                style={styles.videoPanelButton}
+                onPress={() =>
+                  Linking.openURL(
+                    getTimestampedVideoUrl(
+                      cueVideo.videoId,
+                      cueVideo.startTime
+                    )
+                  )
+                }
+              >
+                <FontAwesome name="youtube-play" size={16} color={COURT.bg} />
+                <Text style={styles.videoPanelButtonText}>
+                  Open in YouTube
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </ScrollView>
       </View>
     </View>
@@ -220,6 +266,53 @@ const styles = StyleSheet.create({
   },
   rateButtonText: {
     fontSize: 16,
+    fontWeight: '700',
+    color: COURT.bg,
+  },
+  // Video icon and panel
+  videoIconButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COURT.cardBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPanel: {
+    marginTop: 20,
+  },
+  videoPanelDivider: {
+    height: 1,
+    backgroundColor: COURT.cardBorder,
+    marginBottom: 16,
+  },
+  videoPanelTitle: {
+    fontSize: 14,
+    color: COURT.textSecondary,
+    marginBottom: 6,
+  },
+  videoPanelDesc: {
+    fontSize: 16,
+    color: COURT.textBody,
+    lineHeight: 24,
+    marginBottom: 16,
+  },
+  videoPanelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COURT.accent,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  videoPanelButtonText: {
+    fontSize: 14,
     fontWeight: '700',
     color: COURT.bg,
   },

@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Image,
+  Linking,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
@@ -14,6 +16,11 @@ import { Button } from '@/components/Button';
 import { LevelBadge } from '@/components/LevelBadge';
 import { StarRating } from '@/components/StarRating';
 import { cues, strokeLabels, skillAreaLabels } from '@/data/cues';
+import {
+  getVideoForCue,
+  getVideoThumbnailUrl,
+  getTimestampedVideoUrl,
+} from '@/data/cue-videos';
 import { useUserStore, useSessionStore } from '@/store';
 
 export default function CueDetailScreen() {
@@ -24,6 +31,7 @@ export default function CueDetailScreen() {
   const cue = cues.find((c) => c.id === id);
   const isActive = activeCueIds.includes(id || '');
   const progress = getCueProgress(id || '');
+  const cueVideo = cue ? getVideoForCue(cue.id) : null;
 
   if (!cue) {
     return (
@@ -128,6 +136,56 @@ export default function CueDetailScreen() {
           <Text style={styles.sectionTitle}>How to Execute</Text>
           <Text style={styles.fullDescription}>{cue.fullDescription}</Text>
         </View>
+
+        {/* Watch Video */}
+        {cueVideo ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Watch Video</Text>
+            <TouchableOpacity
+              style={styles.videoCard}
+              onPress={() =>
+                Linking.openURL(
+                  getTimestampedVideoUrl(cueVideo.videoId, cueVideo.startTime)
+                )
+              }
+              activeOpacity={0.8}
+            >
+              <View style={styles.thumbnailContainer}>
+                <Image
+                  source={{ uri: getVideoThumbnailUrl(cueVideo.videoId) }}
+                  style={styles.thumbnail}
+                />
+                <View style={styles.playOverlay}>
+                  <FontAwesome
+                    name="play-circle"
+                    size={48}
+                    color="rgba(255,255,255,0.9)"
+                  />
+                </View>
+              </View>
+              <View style={styles.videoInfo}>
+                <Text style={styles.videoSegmentDesc}>
+                  {cueVideo.segmentDescription}
+                </Text>
+                <View style={styles.videoMeta}>
+                  <FontAwesome name="youtube-play" size={14} color="#FF0000" />
+                  <Text style={styles.videoTitle} numberOfLines={1}>
+                    {cueVideo.videoTitle}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.noVideoContainer}>
+            <FontAwesome
+              name="film"
+              size={16}
+              color={Colors.textSecondary}
+            />
+            <Text style={styles.noVideoText}>No video available yet</Text>
+          </View>
+        )}
 
         {/* Tips */}
         <View style={styles.tipCard}>
@@ -307,6 +365,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     lineHeight: 26,
+  },
+  videoCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  thumbnailContainer: {
+    position: 'relative',
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#000',
+  },
+  thumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  playOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  videoInfo: {
+    padding: 16,
+  },
+  videoSegmentDesc: {
+    fontSize: 15,
+    color: Colors.text,
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  videoMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  videoTitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  noVideoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    marginBottom: 24,
+  },
+  noVideoText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
   },
   tipCard: {
     backgroundColor: Colors.accentLight + '20',

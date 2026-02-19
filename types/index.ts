@@ -78,6 +78,15 @@ export interface VideoResource {
   primaryCueId?: string;
 }
 
+export interface CueVideo {
+  cueId: string;
+  videoId: string; // YouTube video ID
+  videoTitle: string;
+  startTime: number; // seconds
+  endTime: number; // seconds
+  segmentDescription: string;
+}
+
 // Auth types
 export interface AuthUser {
   id: string;

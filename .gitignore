@@ -34,6 +34,11 @@ yarn-error.*
 .env
 .env*.local
 
+# scripts output
+scripts/output/
+scripts/.env
+scripts/venv/
+
 # typescript
 *.tsbuildinfo
 
