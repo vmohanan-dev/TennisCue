@@ -148,43 +148,48 @@ export const syncService = {
   // Sync sessions to Supabase
   async syncSessions(userId: string, sessions: Session[]): Promise<SyncResult> {
     try {
+      // Fetch existing session IDs from cloud to avoid duplicate inserts
+      const { data: existingSessions } = await supabase
+        .from('sessions')
+        .select('id')
+        .eq('user_id', userId);
+
+      const existingSessionIds = new Set(existingSessions?.map((s) => s.id) || []);
+
       for (const session of sessions) {
-        // Check if session already exists
-        const { data: existing } = await supabase
-          .from('sessions')
-          .select('id')
-          .eq('id', session.id)
-          .single();
+        // Skip sessions that already exist in the cloud
+        if (existingSessionIds.has(session.id)) {
+          continue;
+        }
 
-        if (!existing) {
-          // Insert new session
-          const { error: sessionError } = await supabase.from('sessions').insert({
-            id: session.id,
-            user_id: userId,
-            date: session.date,
-            notes: session.notes,
-          });
+        const { error: sessionError } = await supabase.from('sessions').insert({
+          id: session.id,
+          user_id: userId,
+          date: session.date,
+          notes: session.notes,
+        });
 
-          if (sessionError) {
+        if (sessionError) {
+          if (sessionError.code !== '23505') {
             console.error('Error inserting session:', sessionError);
-            continue;
           }
+          continue;
+        }
 
-          // Insert session ratings
-          if (session.cueRatings.length > 0) {
-            const ratingsData = session.cueRatings.map((rating) => ({
-              session_id: session.id,
-              cue_id: rating.cueId,
-              rating: rating.rating,
-            }));
+        // Insert session ratings for newly created sessions
+        if (session.cueRatings.length > 0) {
+          const ratingsData = session.cueRatings.map((rating) => ({
+            session_id: session.id,
+            cue_id: rating.cueId,
+            rating: rating.rating,
+          }));
 
-            const { error: ratingsError } = await supabase
-              .from('session_cue_ratings')
-              .insert(ratingsData);
+          const { error: ratingsError } = await supabase
+            .from('session_cue_ratings')
+            .insert(ratingsData);
 
-            if (ratingsError) {
-              console.error('Error inserting ratings:', ratingsError);
-            }
+          if (ratingsError && ratingsError.code !== '23505') {
+            console.error('Error inserting ratings:', ratingsError);
           }
         }
       }

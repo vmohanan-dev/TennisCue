@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { router } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
-import { useTheme } from '@/components/ThemeProvider';
 import { Card } from '@/components/Card';
 import { LevelBadge } from '@/components/LevelBadge';
-import { useUserStore, useSessionStore, useAuthStore } from '@/store';
+import { useTheme } from '@/components/ThemeProvider';
 import { cues } from '@/data/cues';
+import { useAuthStore, useSessionStore, useUserStore } from '@/store';
+import { FontAwesome } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
@@ -50,7 +50,6 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace('/(auth)/login');
         },
       },
     ]);
@@ -73,6 +72,41 @@ export default function ProfileScreen() {
           onPress: () => {
             resetOnboarding();
             router.replace('/onboarding/welcome');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Final Confirmation',
+              'We are sorry to see you go. This will permanently delete all your data.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Confirm Delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    const result = await useAuthStore.getState().deleteAccount();
+                    if (result.success) {
+                      Alert.alert('Account Deleted', 'Your account and all data have been permanently deleted.');
+                    } else {
+                      Alert.alert('Error', result.error || 'Failed to delete account');
+                    }
+                  }
+                }
+              ]
+            );
           },
         },
       ]
@@ -228,6 +262,31 @@ export default function ProfileScreen() {
           Focus on 3-5 cues at a time during practice. Too many cues can be
           overwhelming and reduce your ability to make meaningful improvements.
         </Text>
+      </Card>
+
+      {/* Danger Zone */}
+      <Text style={[styles.sectionTitle, { color: colors.error, marginTop: 24 }]}>Danger Zone</Text>
+      <Card variant="outlined" style={[styles.dangerZoneCard, { borderColor: colors.error }]}>
+        <View style={styles.dangerZoneContent}>
+          <View style={styles.dangerZoneHeader}>
+            <FontAwesome name="exclamation-triangle" size={20} color={colors.error} />
+            <Text style={[styles.dangerZoneTitle, { color: colors.error }]}>Delete Account</Text>
+          </View>
+          <Text style={[styles.dangerZoneText, { color: colors.textSecondary }]}>
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </Text>
+          <TouchableOpacity
+            style={[styles.deleteButton, { backgroundColor: colors.error, opacity: authLoading ? 0.6 : 1 }]}
+            onPress={handleDeleteAccount}
+            disabled={authLoading}
+          >
+            {authLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.deleteButtonText}>Delete Account</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </Card>
     </ScrollView>
   );
@@ -416,5 +475,39 @@ const styles = StyleSheet.create({
   tipText: {
     fontSize: 14,
     lineHeight: 22,
+  },
+
+  dangerZoneCard: {
+    marginBottom: 24,
+    borderWidth: 1,
+  },
+  dangerZoneContent: {
+    padding: 4,
+  },
+  dangerZoneHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  dangerZoneTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  dangerZoneText: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  deleteButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  deleteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

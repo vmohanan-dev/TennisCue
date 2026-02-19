@@ -1,20 +1,21 @@
+import { Button } from '@/components/Button';
+import { Colors } from '@/constants/Colors';
+import { useAuthStore, useSessionStore, useUserStore } from '@/store';
+import { FontAwesome } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
-import { Button } from '@/components/Button';
-import { useAuthStore, useUserStore, useSessionStore } from '@/store';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -49,6 +50,35 @@ export default function Login() {
     // Navigation handled by auth state change in _layout.tsx
   };
 
+  const checkNetwork = async () => {
+    try {
+      console.log('Testing network connection (IP check)...');
+      // Test 1: Direct IP (Cloudflare) to rule out DNS
+      const response = await fetch('https://1.1.1.1');
+      console.log('IP-based fetch status:', response.status);
+
+      console.log('Testing domain fetch...');
+      const response2 = await fetch('https://www.google.com');
+      console.log('Domain fetch status:', response2.status);
+
+      Alert.alert('Network OK', `IP: ${response.status}, Domain: ${response2.status}`);
+    } catch (e: any) {
+      console.error('Network check failed details:', {
+        message: e.message,
+        candidate: e,
+        stack: e.stack,
+      });
+      // Try XMLHttpRequest as a fallback check
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://www.google.com');
+      xhr.onload = () => console.log('XHR Status:', xhr.status);
+      xhr.onerror = () => console.log('XHR Error');
+      xhr.send();
+
+      Alert.alert('Network Error', `${e.message}\n(Check logs for details)`);
+    }
+  };
+
   const handleSignUp = () => {
     router.push('/(auth)/signup');
   };
@@ -63,6 +93,12 @@ export default function Login() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+        >
         <View style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
@@ -131,6 +167,10 @@ export default function Login() {
             <Text style={styles.signUpLink}>Sign Up</Text>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity onPress={checkNetwork} style={{ alignItems: 'center', padding: 10 }}>
+          <Text style={{ color: Colors.textSecondary }}>Test Network Connection</Text>
+        </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

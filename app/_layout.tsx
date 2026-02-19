@@ -4,11 +4,12 @@ import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import 'react-native-url-polyfill/auto';
 
-import { useUserStore, useAuthStore } from '@/store';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { useAuthStore, useUserStore } from '@/store';
 
 export { ErrorBoundary } from 'expo-router';
 

@@ -12,6 +12,7 @@ interface SessionState {
   getSessionById: (sessionId: string) => Session | undefined;
   getRecentSessions: (limit?: number) => Session[];
   getCueProgress: (cueId: string) => { date: string; rating: number }[];
+  clearSessions: () => void;
   // Sync actions
   syncToCloud: (userId: string) => Promise<void>;
   fetchFromCloud: (userId: string) => Promise<void>;
@@ -48,6 +49,8 @@ export const useSessionStore = create<SessionState>()(
       getRecentSessions: (limit = 10) => {
         return get().sessions.slice(0, limit);
       },
+
+      clearSessions: () => set({ sessions: [] }),
 
       getCueProgress: (cueId) => {
         const { sessions } = get();

@@ -1,6 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createClient } from '@supabase/supabase-js';
 import { AppState } from 'react-native';
+
 
 // Environment variables from .env file
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
@@ -16,6 +17,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+// Refresh session when app comes to foreground
 // Refresh session when app comes to foreground
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {

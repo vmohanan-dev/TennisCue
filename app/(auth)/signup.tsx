@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Button } from '@/components/Button';
-import { useAuthStore } from '@/store';
+import { useAuthStore, useSessionStore, useUserStore } from '@/store';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -24,6 +24,8 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signUp, isLoading, clearError } = useAuthStore();
+  const { resetOnboarding } = useUserStore();
+  const { clearSessions } = useSessionStore();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,11 +57,17 @@ export default function SignUp() {
     const result = await signUp(email.trim(), password);
 
     if (result.success) {
-      Alert.alert(
-        'Account Created',
-        'Please check your email to verify your account, then sign in.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      if (result.needsEmailConfirmation) {
+        Alert.alert(
+          'Account Created',
+          'Please check your email to verify your account, then sign in.',
+          [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+        );
+      } else {
+        // New user auto-confirmed — reset local data from previous account
+        resetOnboarding();
+        clearSessions();
+      }
     } else {
       Alert.alert('Sign Up Failed', result.error || 'Please try again');
     }

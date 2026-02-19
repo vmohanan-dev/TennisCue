@@ -1,8 +1,10 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
+import { useSessionStore } from '@/store/sessionStore';
+import { useUserStore } from '@/store/userStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 interface AuthState {
   user: User | null;
@@ -13,13 +15,15 @@ interface AuthState {
 
   // Actions
   initialize: () => Promise<void>;
-  signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string; needsEmailConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  deleteAccount: () => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
   setSession: (session: Session | null) => void;
 }
+
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -77,13 +81,14 @@ export const useAuthStore = create<AuthState>()(
             return { success: false, error: error.message };
           }
 
-          set({
-            session: data.session,
-            user: data.user,
-            isLoading: false,
-          });
+          // If email confirmation is required, session will be null
+          if (data.session) {
+            set({ session: data.session, user: data.user, isLoading: false });
+          } else {
+            set({ isLoading: false });
+          }
 
-          return { success: true };
+          return { success: true, needsEmailConfirmation: !data.session };
         } catch (error: any) {
           const message = error.message || 'An error occurred during sign up';
           set({ error: message, isLoading: false });
@@ -154,6 +159,70 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: () => set({ error: null }),
+
+      deleteAccount: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          // Force a token refresh to ensure the session is fresh
+          const { error: refreshError } = await supabase.auth.refreshSession();
+
+          if (refreshError) {
+            set({ isLoading: false });
+            return { success: false, error: 'Session expired. Please sign in again.' };
+          }
+
+          // Verify we have a valid session after refresh
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+          if (!currentSession) {
+            set({ isLoading: false });
+            return { success: false, error: 'No active session. Please sign in again.' };
+          }
+
+          // supabase.functions.invoke automatically includes the auth token
+          const { data, error, response } = await supabase.functions.invoke('delete-user', {
+            method: 'POST',
+          });
+
+          if (error) {
+            let message = 'Account deletion is not available right now. Please try again later.';
+            try {
+              const errorResponse = error.context ?? response;
+              if (errorResponse) {
+                const text = await errorResponse.text();
+                const body = JSON.parse(text);
+                if (body?.error) {
+                  message = body.error;
+                }
+              }
+            } catch {
+              // Fall back to generic message
+            }
+            set({ error: message, isLoading: false });
+            return { success: false, error: message };
+          }
+
+          // Clear local data stores before signing out
+          useSessionStore.getState().clearSessions();
+          useUserStore.getState().resetOnboarding();
+
+          // Sign out locally
+          await supabase.auth.signOut();
+          set({
+            session: null,
+            user: null,
+            isLoading: false,
+            error: null,
+          });
+
+          return { success: true };
+        } catch (error: any) {
+          console.error('Error in deleteAccount:', error);
+          const message = error.message || 'An error occurred during account deletion';
+          set({ error: message, isLoading: false });
+          return { success: false, error: message };
+        }
+      },
 
       setSession: (session) =>
         set({
