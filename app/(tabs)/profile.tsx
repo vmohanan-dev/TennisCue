@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -126,19 +127,71 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleFeedback = () => {
+    Linking.openURL('mailto:info@laceup.club?subject=TennisCue%20Feedback');
+  };
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
+      {/* Your Level Card */}
+      <Card variant="elevated" style={styles.identityCard}>
+        <View
+          style={[
+            styles.accentStrip,
+            { backgroundColor: level ? colors[level] : colors.textSecondary },
+          ]}
+        />
+        <View style={styles.identityContent}>
+          <View style={styles.levelRow}>
+            <View
+              style={[
+                styles.trophyCircle,
+                { backgroundColor: level ? colors[level] : colors.textSecondary },
+              ]}
+            >
+              <FontAwesome name="trophy" size={28} color={colors.textOnPrimary} />
+            </View>
+            <View style={styles.levelInfo}>
+              <Text style={[styles.levelLabel, { color: colors.textSecondary }]}>
+                Your Level
+              </Text>
+              {level ? (
+                <LevelBadge level={level} size="medium" />
+              ) : (
+                <Text style={[styles.noLevel, { color: colors.textSecondary }]}>
+                  Not assessed
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>
+            {getLevelDescription()}
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.background }]}
+            onPress={handleRetakeQuiz}
+          >
+            <FontAwesome name="refresh" size={13} color={colors.primary} />
+            <Text style={[styles.actionButtonText, { color: colors.primary }]}>
+              Retake Assessment
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
+
       {/* Account Card */}
       <Card variant="elevated" style={styles.accountCard}>
-        <View style={styles.accountHeader}>
-          <View style={[styles.avatarCircle, { backgroundColor: colors.primary }]}>
-            <FontAwesome name="user" size={24} color={colors.textOnPrimary} />
+        <View style={styles.accountRow}>
+          <View style={[styles.avatarSmall, { backgroundColor: colors.primary }]}>
+            <FontAwesome name="user" size={16} color={colors.textOnPrimary} />
           </View>
-          <View style={styles.accountInfo}>
+          <View style={styles.accountDetails}>
             <Text style={[styles.accountEmail, { color: colors.text }]} numberOfLines={1}>
               {user?.email || 'Not signed in'}
             </Text>
@@ -148,7 +201,7 @@ export default function ProfileScreen() {
               ) : (
                 <FontAwesome
                   name={syncStatus === 'error' ? 'exclamation-circle' : 'check-circle'}
-                  size={14}
+                  size={12}
                   color={syncStatus === 'error' ? colors.error : colors.success}
                 />
               )}
@@ -160,51 +213,26 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
-        <View style={styles.accountActions}>
+
+        <View style={styles.actionRow}>
           <TouchableOpacity
-            style={[styles.syncButton, { backgroundColor: colors.secondary + '20' }]}
+            style={[styles.actionButton, { backgroundColor: colors.secondary + '20' }]}
             onPress={handleSync}
             disabled={isSyncing || syncStatus === 'syncing'}
           >
-            <FontAwesome name="refresh" size={14} color={colors.secondary} />
-            <Text style={[styles.syncButtonText, { color: colors.secondary }]}>Sync Now</Text>
+            <FontAwesome name="cloud-upload" size={13} color={colors.secondary} />
+            <Text style={[styles.actionButtonText, { color: colors.secondary }]}>Sync</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            style={[styles.signOutButton, { backgroundColor: colors.error + '15' }]}
+            style={[styles.actionButton, { backgroundColor: colors.error + '12' }]}
             onPress={handleSignOut}
             disabled={authLoading}
           >
-            <FontAwesome name="sign-out" size={14} color={colors.error} />
-            <Text style={[styles.signOutButtonText, { color: colors.error }]}>Sign Out</Text>
+            <FontAwesome name="sign-out" size={13} color={colors.error} />
+            <Text style={[styles.actionButtonText, { color: colors.error }]}>Sign Out</Text>
           </TouchableOpacity>
         </View>
-      </Card>
-
-      {/* Level Card */}
-      <Card variant="elevated" style={styles.levelCard}>
-        <View style={styles.levelHeader}>
-          <View
-            style={[
-              styles.levelIcon,
-              { backgroundColor: level ? colors[level] : colors.textSecondary },
-            ]}
-          >
-            <FontAwesome name="trophy" size={28} color={colors.textOnPrimary} />
-          </View>
-          <View style={styles.levelInfo}>
-            <Text style={[styles.levelLabel, { color: colors.textSecondary }]}>Your Level</Text>
-            {level ? (
-              <LevelBadge level={level} size="medium" />
-            ) : (
-              <Text style={[styles.noLevel, { color: colors.textSecondary }]}>Not assessed</Text>
-            )}
-          </View>
-        </View>
-        <Text style={[styles.levelDescription, { color: colors.textSecondary }]}>{getLevelDescription()}</Text>
-        <TouchableOpacity style={[styles.retakeButton, { backgroundColor: colors.background }]} onPress={handleRetakeQuiz}>
-          <FontAwesome name="refresh" size={14} color={colors.primary} />
-          <Text style={[styles.retakeButtonText, { color: colors.primary }]}>Retake Assessment</Text>
-        </TouchableOpacity>
       </Card>
 
       {/* Stats Grid */}
@@ -243,25 +271,19 @@ export default function ProfileScreen() {
           </View>
         </View>
         <View style={[styles.aboutDivider, { backgroundColor: colors.divider }]} />
-        <View style={styles.aboutItem}>
-          <FontAwesome name="heart" size={20} color={colors.error} />
+        <TouchableOpacity style={styles.aboutItem} onPress={handleFeedback}>
+          <FontAwesome name="envelope" size={20} color={colors.primary} />
           <View style={styles.aboutText}>
-            <Text style={[styles.aboutLabel, { color: colors.textSecondary }]}>Made with</Text>
-            <Text style={[styles.aboutValue, { color: colors.text }]}>React Native & Expo</Text>
+            <Text style={[styles.aboutLabel, { color: colors.textSecondary }]}>Feedback</Text>
+            <Text style={[styles.aboutValue, { color: colors.primary }]}>Send us your thoughts</Text>
           </View>
-        </View>
-      </Card>
-
-      {/* Tips */}
-      <Card variant="elevated" style={[styles.tipCard, { backgroundColor: colors.accent + '20', borderColor: colors.accentLight }]}>
-        <View style={styles.tipHeader}>
-          <FontAwesome name="lightbulb-o" size={20} color={colors.accent} />
-          <Text style={[styles.tipTitle, { color: colors.accent }]}>Quick Tip</Text>
-        </View>
-        <Text style={[styles.tipText, { color: colors.text }]}>
-          Focus on 3-5 cues at a time during practice. Too many cues can be
-          overwhelming and reduce your ability to make meaningful improvements.
-        </Text>
+          <FontAwesome
+            name="chevron-right"
+            size={14}
+            color={colors.textSecondary}
+            style={{ marginLeft: 'auto' }}
+          />
+        </TouchableOpacity>
       </Card>
 
       {/* Danger Zone */}
@@ -300,77 +322,25 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  accountCard: {
+
+  // Player Identity Card
+  identityCard: {
     marginBottom: 24,
+    overflow: 'hidden',
+    padding: 0,
   },
-  accountHeader: {
+  accentStrip: {
+    height: 4,
+    width: '100%',
+  },
+  identityContent: {
+    padding: 16,
+  },
+  levelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  accountInfo: {
-    flex: 1,
-  },
-  accountEmail: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  syncStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  syncText: {
-    fontSize: 13,
-  },
-  accountActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  syncButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  syncButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  signOutButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  signOutButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  levelCard: {
-    marginBottom: 24,
-  },
-  levelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  levelIcon: {
+  trophyCircle: {
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -382,30 +352,73 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   levelLabel: {
-    fontSize: 14,
-    marginBottom: 4,
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 6,
   },
   noLevel: {
     fontSize: 16,
     fontStyle: 'italic',
   },
   levelDescription: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 16,
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 12,
+    marginBottom: 14,
   },
-  retakeButton: {
+
+  // Account Card
+  accountCard: {
+    marginBottom: 24,
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarSmall: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  accountDetails: {
+    flex: 1,
+  },
+  accountEmail: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 3,
+  },
+  syncStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  syncText: {
+    fontSize: 12,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 14,
+  },
+  actionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 12,
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
-  retakeButtonText: {
-    fontSize: 15,
+  actionButtonText: {
+    fontSize: 13,
     fontWeight: '600',
   },
+
+  // Stats
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -437,6 +450,8 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 13,
   },
+
+  // About
   aboutCard: {
     marginBottom: 24,
   },
@@ -459,24 +474,8 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: 12,
   },
-  tipCard: {
-    borderWidth: 1,
-  },
-  tipHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  tipTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  tipText: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
 
+  // Danger Zone
   dangerZoneCard: {
     marginBottom: 24,
     borderWidth: 1,
