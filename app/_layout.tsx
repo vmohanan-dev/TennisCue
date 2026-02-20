@@ -2,12 +2,13 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFonts } from 'expo-font';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-url-polyfill/auto';
 
+import { AnimatedSplashOverlay } from '@/components/AnimatedSplashOverlay';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { useAuthStore, useUserStore } from '@/store';
 import { syncWidgetData } from '@/services/widgetSync';
@@ -27,6 +28,7 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
   const { isInitialized, initialize } = useAuthStore();
+  const [splashAnimationComplete, setSplashAnimationComplete] = useState(false);
 
   // Initialize auth on mount and sync widget data
   useEffect(() => {
@@ -38,11 +40,31 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
-  if (!loaded || !isInitialized) {
+  // Hide native splash once our animated overlay is rendered
+  useEffect(() => {
+    if (loaded) {
+      const timer = setTimeout(() => SplashScreen.hideAsync(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [loaded]);
+
+  if (!loaded) {
     return null;
   }
 
-  return <RootLayoutNav />;
+  const isAppReady = loaded && isInitialized;
+
+  return (
+    <>
+      <RootLayoutNav />
+      {!splashAnimationComplete && (
+        <AnimatedSplashOverlay
+          isReady={isAppReady}
+          onFinish={() => setSplashAnimationComplete(true)}
+        />
+      )}
+    </>
+  );
 }
 
 function RootLayoutNav() {
@@ -60,9 +82,6 @@ function RootLayoutNav() {
     } else {
       router.replace('/(tabs)');
     }
-
-    // Hide splash screen after navigation
-    SplashScreen.hideAsync();
   }, [user, isInitialized, hasCompletedOnboarding]);
 
   return (
